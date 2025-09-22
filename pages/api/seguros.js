@@ -27,7 +27,8 @@ export default async function handler(req, res) {
     .order(safeColumn, { ascending: asc });
 
   if (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('Erro Supabase:', error);
+    return res.status(500).json({ error: error.message, details: error });
   }
 
   return res.status(200).json(data);
