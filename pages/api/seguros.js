@@ -29,42 +29,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: error.message, details: error });
       }
 
-      return res.status(200).json(data);
-    }
-
-    if (req.method === 'POST') {
-      const fields = req.body;
-      const { data, error } = await supabase.from('seguros').insert([fields]);
-      if (error) {
-        console.error('Erro Supabase:', error);
-        return res.status(500).json({ error: error.message, details: error });
-      }
-      return res.status(201).json(data);
-    }
-
-    if (req.method === 'PUT') {
-      const { id, ...fields } = req.body;
-      if (!id) return res.status(400).json({ error: 'ID é obrigatório para atualizar' });
-      const { data, error } = await supabase.from('seguros').update(fields).eq('id', id);
-      if (error) {
-        console.error('Erro Supabase:', error);
-        return res.status(500).json({ error: error.message, details: error });
-      }
-      return res.status(200).json(data);
-    }
-
-    if (req.method === 'DELETE') {
-      const id = req.query.id;
-      if (!id) return res.status(400).json({ error: 'ID é obrigatório para excluir' });
-      const { data, error } = await supabase.from('seguros').delete().eq('id', id);
-      if (error) {
-        console.error('Erro Supabase:', error);
-        return res.status(500).json({ error: error.message, details: error });
-      }
-      return res.status(200).json(data);
-    }
-
-    return res.status(405).json({ error: 'Método não permitido' });
+    return res.status(200).json(data);
   } catch (err) {
     console.error('Erro inesperado na API:', err);
     return res.status(500).json({ error: 'Erro inesperado na API', details: err.message || err });
