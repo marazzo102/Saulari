@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      const { id } = req.query;
+      const id = req.query.id;
       if (!id) return res.status(400).json({ error: 'ID é obrigatório para excluir' });
       const { data, error } = await supabase.from('seguros').delete().eq('id', id);
       if (error) {
