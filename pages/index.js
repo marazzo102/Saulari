@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+
+  const [order, setOrder] = useState({ column: 'vigencia_fim', ascending: true });
 
 export default function Home() {
   const [seguros, setSeguros] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState({
-    column: "vigencia_fim",
-    ascending: true,
-  });
+
   const [search, setSearch] = useState("");
 
   // Estados do formulário
@@ -23,16 +21,17 @@ export default function Home() {
     vigencia_fim: "",
   });
 
-  async function fetchSeguros(column = "vigencia_fim", ascending = true) {
-    const { data, error } = await supabase
-      .from("seguros")
-      .select("*")
-      .order(column, { ascending });
-
-    if (error) console.error(error);
-    else setSeguros(data);
-
-    setSortBy({ column, ascending });
+  async function fetchSeguros(column = order.column, ascending = order.ascending) {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/seguros?column=${column}&ascending=${ascending}`);
+      if (!res.ok) throw new Error('Erro ao buscar seguros');
+      const data = await res.json();
+      setSeguros(data);
+      setOrder({ column, ascending });
+    } catch (error) {
+      console.error(error);
+    }
     setLoading(false);
   }
 
@@ -94,7 +93,7 @@ export default function Home() {
       vigencia_fim: "",
     });
 
-    fetchSeguros(sortBy.column, sortBy.ascending);
+  fetchSeguros();
   }
 
   // Preencher formulário para editar
@@ -104,9 +103,15 @@ export default function Home() {
 
   // Excluir seguro
   async function excluirSeguro(id) {
-    const { error } = await supabase.from("seguros").delete().eq("id", id);
-    if (error) console.error(error);
-    fetchSeguros(sortBy.column, sortBy.ascending);
+    try {
+      const res = await fetch(`/api/seguros?id=${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Erro ao excluir seguro');
+      fetchSeguros();
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
@@ -259,33 +264,61 @@ export default function Home() {
         </button>
       </form>
 
+
       {/* Botões de ordenação */}
       <div style={{ marginBottom: 15 }}>
-        <button onClick={() => fetchSeguros("vigencia_fim", true)}>
+        <button
+          onClick={() => fetchSeguros('vigencia_fim', true)}
+          style={{ fontWeight: order.column === 'vigencia_fim' && order.ascending ? 'bold' : 'normal' }}
+        >
           Ordenar por Vencimento ↑
         </button>
-        <button onClick={() => fetchSeguros("vigencia_fim", false)}>
+        <button
+          onClick={() => fetchSeguros('vigencia_fim', false)}
+          style={{ fontWeight: order.column === 'vigencia_fim' && !order.ascending ? 'bold' : 'normal' }}
+        >
           Ordenar por Vencimento ↓
         </button>
-        <button onClick={() => fetchSeguros("tipo_seguro", true)}>
+        <button
+          onClick={() => fetchSeguros('tipo_seguro', true)}
+          style={{ fontWeight: order.column === 'tipo_seguro' && order.ascending ? 'bold' : 'normal' }}
+        >
           Ordenar por Tipo ↑
         </button>
-        <button onClick={() => fetchSeguros("tipo_seguro", false)}>
+        <button
+          onClick={() => fetchSeguros('tipo_seguro', false)}
+          style={{ fontWeight: order.column === 'tipo_seguro' && !order.ascending ? 'bold' : 'normal' }}
+        >
           Ordenar por Tipo ↓
         </button>
-        <button onClick={() => fetchSeguros("seguradora", true)}>
+        <button
+          onClick={() => fetchSeguros('seguradora', true)}
+          style={{ fontWeight: order.column === 'seguradora' && order.ascending ? 'bold' : 'normal' }}
+        >
           Ordenar por Seguradora ↑
         </button>
-        <button onClick={() => fetchSeguros("seguradora", false)}>
+        <button
+          onClick={() => fetchSeguros('seguradora', false)}
+          style={{ fontWeight: order.column === 'seguradora' && !order.ascending ? 'bold' : 'normal' }}
+        >
           Ordenar por Seguradora ↓
         </button>
-        <button onClick={() => fetchSeguros("premio", true)}>
+        <button
+          onClick={() => fetchSeguros('premio', true)}
+          style={{ fontWeight: order.column === 'premio' && order.ascending ? 'bold' : 'normal' }}
+        >
           Ordenar por Prêmio ↑
         </button>
-        <button onClick={() => fetchSeguros("premio", false)}>
+        <button
+          onClick={() => fetchSeguros('premio', false)}
+          style={{ fontWeight: order.column === 'premio' && !order.ascending ? 'bold' : 'normal' }}
+        >
           Ordenar por Prêmio ↓
         </button>
       </div>
+      <p style={{ marginTop: 10, fontStyle: 'italic' }}>
+        Ordenado por <b>{order.column}</b> ({order.ascending ? 'crescente' : 'decrescente'})
+      </p>
 
       {/* Tabela de seguros */}
       <table
@@ -329,10 +362,7 @@ export default function Home() {
         </tbody>
       </table>
 
-      <p style={{ marginTop: 10, fontStyle: "italic" }}>
-        Ordenado por <b>{sortBy.column}</b> (
-        {sortBy.ascending ? "crescente" : "decrescente"})
-      </p>
+
     </div>
   );
 }
