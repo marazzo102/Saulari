@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     console.warn(`Invalid column "${column}" provided in query. Falling back to "vigencia_fim".`);
     safeColumn = 'vigencia_fim';
   }
-  const safeColumn = allowedColumns.includes(col) ? col : 'vigencia_fim';
+  safeColumn = allowedColumns.includes(col) ? col : 'vigencia_fim';
 
   const { data, error } = await supabase
     .from('seguros')

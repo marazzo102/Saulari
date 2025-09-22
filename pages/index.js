@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 
-  const [order, setOrder] = useState({ column: 'vigencia_fim', ascending: true });
-
 export default function Home() {
+  const [order, setOrder] = useState({ column: 'vigencia_fim', ascending: true });
   const [seguros, setSeguros] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +36,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchSeguros();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Verificar seguros que vencem em até 30 dias
