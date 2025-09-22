@@ -58,42 +58,39 @@ export default function Home() {
   async function salvarSeguro(e) {
     e.preventDefault();
 
-    if (formData.id) {
-      // Atualizar
-      const { error } = await supabase
-        .from("seguros")
-        .update({
-          cliente_nome: formData.cliente_nome,
-          cliente_cpf: formData.cliente_cpf,
-          cliente_numero: formData.cliente_numero,
-          tipo_seguro: formData.tipo_seguro,
-          seguradora: formData.seguradora,
-          premio: formData.premio,
-          vigencia_inicio: formData.vigencia_inicio,
-          vigencia_fim: formData.vigencia_fim,
-        })
-        .eq("id", formData.id);
-
-      if (error) console.error(error);
-    } else {
-      // Inserir novo
-      const { error } = await supabase.from("seguros").insert([formData]);
-      if (error) console.error(error);
+    try {
+      let res;
+      if (formData.id) {
+        // Atualizar
+        res = await fetch(`/api/seguros`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      } else {
+        // Inserir novo
+        res = await fetch(`/api/seguros`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
+      if (!res.ok) throw new Error('Erro ao salvar seguro');
+      setFormData({
+        id: null,
+        cliente_nome: "",
+        cliente_cpf: "",
+        cliente_numero: "",
+        tipo_seguro: "",
+        seguradora: "",
+        premio: "",
+        vigencia_inicio: "",
+        vigencia_fim: "",
+      });
+      fetchSeguros();
+    } catch (error) {
+      console.error(error);
     }
-
-    setFormData({
-      id: null,
-      cliente_nome: "",
-      cliente_cpf: "",
-      cliente_numero: "",
-      tipo_seguro: "",
-      seguradora: "",
-      premio: "",
-      vigencia_inicio: "",
-      vigencia_fim: "",
-    });
-
-  fetchSeguros();
   }
 
   // Preencher formulário para editar
