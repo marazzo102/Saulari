@@ -6,7 +6,10 @@ export default async function handler(req, res) {
   }
 
   // Ordenação dinâmica via query params
-  const allowedColumns = ['vigencia_fim', 'id', 'nome', 'data_inicio', 'data_fim']; // adicione os nomes de colunas permitidas
+  const allowedColumns = [
+    'vigencia_fim', 'id', 'cliente_nome', 'cliente_cpf', 'cliente_numero',
+    'tipo_seguro', 'seguradora', 'premio', 'vigencia_inicio'
+  ];
   const { column = 'vigencia_fim', ascending = 'true' } = req.query;
   const col = typeof column === 'string' ? column : '';
   const asc = String(ascending).toLowerCase() === 'true';
