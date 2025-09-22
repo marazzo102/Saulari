@@ -34,7 +34,8 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       // Remove o campo id, se vier no body
-      const { id, ...fields } = req.body;
+      const fields = { ...req.body };
+      delete fields.id;
       const { data, error } = await supabase.from('seguros').insert([fields]);
       if (error) {
         console.error('Erro Supabase:', error);
