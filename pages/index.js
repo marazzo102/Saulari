@@ -254,22 +254,73 @@ export default function Home() {
     });
   }
 
+  const [section, setSection] = useState('dashboard');
+
+  function NavLink({ label, icon, value }) {
+    return (
+      <a
+        className={section === value ? 'active' : ''}
+        href="#"
+        onClick={e => { e.preventDefault(); setSection(value); }}
+        style={{ userSelect: 'none' }}
+      >
+        {icon} {label}
+      </a>
+    );
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand"><div className="logo" /> <span>Saulari Seguros</span></div>
         <nav className="nav" aria-label="Principal">
-          <a className="active" href="#">📊 Dashboard</a>
-          <a href="#seguros">📋 Seguros</a>
-          <a href="#relatorios">📈 Relatórios</a>
-          <a href="#config">⚙️ Configurações</a>
+          <NavLink label="Dashboard" icon="📊" value="dashboard" />
+          <NavLink label="Seguros" icon="📋" value="seguros" />
+          <NavLink label="Relatórios" icon="📈" value="relatorios" />
+          <NavLink label="Configurações" icon="⚙️" value="config" />
         </nav>
         <div style={{marginTop:'auto', opacity:.8, fontSize:12}}>© {new Date().getFullYear()} Saulari</div>
       </aside>
       <main className="content">
-        <div className="container-seguros" id="seguros">
-      <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📋 Seguros</h1>
-          <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gestão centralizada dos contratos e vigências.</p>
+        {section === 'dashboard' && (
+          <div className="container-seguros">
+            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📊 Dashboard</h1>
+            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Visão geral dos seguros e indicadores.</p>
+            {/* Cards de resumo */}
+            <section className="kpis" aria-label="Resumo">
+              <div className="kpi">
+                <h3>Ativos</h3>
+                <div className="value">{ativos.length}</div>
+                <div className="sub">Apólices vigentes</div>
+              </div>
+              <div className="kpi">
+                <h3>Em 30 dias</h3>
+                <div className="value">{vencendo.length}</div>
+                <div className="sub">Acompanhar renovações</div>
+              </div>
+              <div className="kpi">
+                <h3>Vencidos</h3>
+                <div className="value">{vencidos.length}</div>
+                <div className="sub">Ação imediata</div>
+              </div>
+              <div className="kpi">
+                <h3>Prêmio ativos</h3>
+                <div className="value">R$ {premioAtivos.toLocaleString('pt-BR')}</div>
+                <div className="sub">Soma dos prêmios</div>
+              </div>
+            </section>
+            {/* Gráfico de exemplo (placeholder) */}
+            <div style={{marginTop:32, background:'#f6fbff', borderRadius:12, padding:24, textAlign:'center', color:'#1976d2', fontWeight:600}}>
+              [Gráfico de prêmios por mês aqui]
+              <br />
+              <span style={{fontSize:13, color:'#4b6980', fontWeight:400}}>Integre uma lib como recharts/chart.js para gráficos reais.</span>
+            </div>
+          </div>
+        )}
+        {section === 'seguros' && (
+          <div className="container-seguros" id="seguros">
+            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📋 Seguros</h1>
+            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gestão centralizada dos contratos e vigências.</p>
 
           {/* Cards de resumo */}
           <section className="kpis" aria-label="Resumo">
@@ -427,7 +478,7 @@ export default function Home() {
       </div>
       <div className="order-info">Ordenado por <strong>{order.column}</strong> ({order.ascending ? 'crescente' : 'decrescente'})</div>
 
-      <table className="seguros">
+  <table className="seguros">
         <thead>
           <tr>
             <th>Cliente</th>
@@ -474,6 +525,19 @@ export default function Home() {
                       Anexar PDF
                       <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
                     </label>
+                    {s.apolice_pdf && (
+                      <a
+                        className="mini-btn"
+                        href={
+                          `/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf.replace(/^.*\/apolices\//, 'apolices/'))}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{background:'#e6f5ec', color:'#0a7a3e', border:'1px solid #b9e3c9'}}
+                      >
+                        Ver PDF
+                      </a>
+                    )}
                     {uploadingId===s.id && <span style={{fontSize:12,color:'#1769aa'}}>Enviando...</span>}
                   </div>
                 </td>
@@ -514,6 +578,35 @@ export default function Home() {
         </div>
       )}
         </div>
+        )}
+        {section === 'relatorios' && (
+          <div className="container-seguros">
+            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📈 Relatórios</h1>
+            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gere e exporte relatórios detalhados dos seguros.</p>
+            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
+              <b>Relatório de prêmios recebidos (exemplo):</b>
+              <br />
+              <span style={{fontSize:13, color:'#4b6980'}}>Selecione filtros, exporte PDF/Excel, integre gráficos e tabelas.</span>
+            </div>
+            <button className="btn-main" disabled style={{opacity:.6}}>Exportar relatório (em breve)</button>
+          </div>
+        )}
+        {section === 'config' && (
+          <div className="container-seguros">
+            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>⚙️ Configurações</h1>
+            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Personalize preferências, dados da empresa e integrações.</p>
+            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
+              <b>Configurações gerais (exemplo):</b>
+              <ul style={{color:'#4b6980', fontSize:14, margin:'12px 0 0 18px'}}>
+                <li>Nome da empresa, logo, CNPJ</li>
+                <li>Preferências de tema</li>
+                <li>Usuários do sistema</li>
+                <li>Integrações (WhatsApp, e-mail, backup)</li>
+              </ul>
+            </div>
+            <button className="btn-main" disabled style={{opacity:.6}}>Salvar configurações (em breve)</button>
+          </div>
+        )}
       </main>
     </div>
   );
