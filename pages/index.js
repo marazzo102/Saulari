@@ -123,7 +123,6 @@ export default function Home() {
   return (
     <div style={{ padding: 20 }}>
 
-
       <h1>📋 Seguros</h1>
 
       <button
@@ -144,21 +143,6 @@ export default function Home() {
 
       {loading && <p>Carregando...</p>}
 
-
-      {/* Alerta de vencidos */}
-      {vencidos.length > 0 && (
-        <div style={{ background: "#ffd6d6", padding: 10, margin: "10px 0", color: '#a00', border: '1px solid #a00' }}>
-          <strong>⛔ Atenção:</strong> {vencidos.length} seguro(s) já estão vencidos!
-        </div>
-      )}
-
-      {/* Alerta de vencimento em até 30 dias */}
-      {vencendo.length > 0 && (
-        <div style={{ background: "#ffe5e5", padding: 10, margin: "10px 0", color: '#a66', border: '1px solid #a66' }}>
-          <strong>⚠️ Aviso:</strong> {vencendo.length} seguro(s) vencem em até 30 dias!
-        </div>
-      )}
-
       {/* Campo de busca */}
       <div style={{ marginBottom: 15 }}>
         <input
@@ -170,6 +154,23 @@ export default function Home() {
         />
       </div>
 
+
+      {/* Alerta de vencidos e vencendo - AGORA ACIMA DA TABELA */}
+      {(vencidos.length > 0 || vencendo.length > 0) && (
+        <div style={{ margin: "20px 0 10px 0" }}>
+          {vencidos.length > 0 && (
+            <div style={{ background: "#ffd6d6", padding: 10, marginBottom: 6, color: '#a00', border: '1px solid #a00', borderRadius: 4 }}>
+              <strong>⛔ Atenção:</strong> {vencidos.length} seguro(s) já estão vencidos!
+            </div>
+          )}
+          {vencendo.length > 0 && (
+            <div style={{ background: "#ffe5e5", padding: 10, color: '#a66', border: '1px solid #a66', borderRadius: 4 }}>
+              <strong>⚠️ Aviso:</strong> {vencendo.length} seguro(s) vencem em até 30 dias!
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Formulário de cadastro/edição */}
       {formVisible && (
         <form
@@ -177,7 +178,7 @@ export default function Home() {
           style={{ marginBottom: 20, background: "#f4f4f4", padding: 15 }}
         >
           <h2>{formData.id ? "✏️ Editar Seguro" : "➕ Novo Seguro"}</h2>
-
+          {/* ...restante do formulário... */}
           <input
             placeholder="Nome do Cliente"
             value={formData.cliente_nome}
