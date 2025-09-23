@@ -14,10 +14,18 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     .btn-secondary:hover { background:#d2e4f7; }
     .search-input { width:100%; padding:11px 14px; border:1.5px solid #b7c9da; border-radius:10px; font-size:15px; background:#fafdff; outline:none; transition:.25s; }
     .search-input:focus { border-color:#1976d2; box-shadow:0 0 0 3px #4fc3f733; }
-    .alerts-wrapper { margin:18px 0 4px; display:flex; flex-direction:column; gap:10px; }
-    .alert { border-radius:10px; padding:14px 18px; font-weight:500; display:flex; gap:10px; align-items:center; box-shadow:0 2px 10px #1976d21a; animation:fadeIn .6s; }
-    .alert-vencidos { background:#ffe7e7; color:#b32626; border:1.5px solid #d33c3c; }
-    .alert-vencendo { background:#fff8dc; color:#a08300; border:1.5px solid #d2b800; }
+  .alerts-wrapper { margin:14px 0 2px; display:flex; flex-direction:column; gap:8px; position:relative; }
+  .alerts-wrapper.sticky { position:sticky; top:0; z-index:30; padding-top:4px; }
+  .alert { border-radius:12px; padding:12px 16px; font-weight:500; display:flex; gap:10px; align-items:center; box-shadow:0 3px 14px #0d27440f,0 1px 2px #0d274415; animation:fadeIn .5s; line-height:1.25; backdrop-filter:blur(6px); }
+  .alert strong { font-weight:700; }
+  .alert small { font-size:12px; opacity:.7; font-weight:400; }
+  .alert-vencidos { background:linear-gradient(125deg,#ffe3e3,#ffcaca); color:#8f2222; border:1px solid #e05a5a; }
+  .alert-vencendo { background:linear-gradient(125deg,#fff4c9,#ffeaa3); color:#6d5a00; border:1px solid #d2b800; }
+  .alert-badges { display:flex; gap:10px; flex-wrap:wrap; }
+  .alert-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 10px 5px 8px; background:#fff; border-radius:30px; font-size:12px; font-weight:600; color:#1769aa; box-shadow:0 2px 6px #1769aa22; }
+  .alert-badge span.dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .alert-badge .dot.red { background:#e53935; box-shadow:0 0 0 2px #ffffffcc,0 0 8px #e5393580; }
+  .alert-badge .dot.yellow { background:#ffd600; box-shadow:0 0 0 2px #ffffffcc,0 0 8px #ffd60080; }
     .form-wrapper { background:#f5faff; border:1px solid #dde8f1; border-radius:16px; padding:22px 22px 10px; margin:24px 0 30px; box-shadow:0 4px 18px #1976d210; animation:scaleIn .45s ease; }
     @keyframes scaleIn { from {opacity:0; transform:translateY(-14px) scale(.97);} to {opacity:1; transform:translateY(0) scale(1);} }
     .form-grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-bottom:4px; }
@@ -48,6 +56,18 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     .mini-btn.danger { background:#ffe5e5; color:#b42222; }
     .mini-btn.danger:hover { background:#d63030; color:#fff; }
     .loading { color:#1769aa; font-weight:500; margin-top:18px; }
+    /* --- Filtros rápidos e toasts adicionados --- */
+    .filters-bar { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 4px; align-items:center; }
+    .chip-filter { padding:6px 14px; border-radius:22px; background:#e6eef7; color:#1769aa; font-size:12px; font-weight:600; cursor:pointer; border:none; transition:.25s; }
+    .chip-filter.active { background:#1976d2; color:#fff; box-shadow:0 3px 10px #1976d23a; }
+    .chip-filter:not(.active):hover { background:#d2e4f7; }
+    .toast-container { position:fixed; right:24px; bottom:24px; display:flex; flex-direction:column; gap:10px; max-width:300px; z-index:500; }
+    .toast { border-radius:14px; padding:14px 16px 14px 14px; font-size:14px; display:flex; gap:10px; align-items:flex-start; box-shadow:0 6px 28px #0d274433; background:#fff; border:1px solid #e2e9f0; animation:slideIn .5s ease; }
+    @keyframes slideIn { from {opacity:0; transform:translateY(16px) scale(.96);} to {opacity:1; transform:translateY(0) scale(1);} }
+    .toast.vencidos { border-left:6px solid #e53935; }
+    .toast.vencendo { border-left:6px solid #ffd600; }
+    .toast h4 { margin:0 0 4px; font-size:14px; font-weight:700; }
+    .toast small { font-size:11px; opacity:.75; line-height:1.3; }
   `;
   document.head.appendChild(style);
 }
@@ -58,6 +78,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [formVisible, setFormVisible] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(true);
+  const [alertsAsToast, setAlertsAsToast] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('todos'); // 'todos' | 'vencidos' | 'vencendo'
   const [formData, setFormData] = useState({
     id: null,
     cliente_nome: '',
@@ -97,9 +120,21 @@ export default function Home() {
   const vencidos = seguros.filter(s => new Date(s.vigencia_fim) < hoje);
 
   const segurosFiltrados = seguros.filter(s =>
-    s.cliente_nome.toLowerCase().includes(search.toLowerCase()) ||
-    s.cliente_cpf.includes(search)
+    (s.cliente_nome.toLowerCase().includes(search.toLowerCase()) || s.cliente_cpf.includes(search)) &&
+    (statusFilter === 'todos' || (statusFilter === 'vencidos' && new Date(s.vigencia_fim) < hoje) || (statusFilter === 'vencendo' && (()=>{const fim=new Date(s.vigencia_fim);const diff=(fim-hoje)/(1000*60*60*24);return diff>=0 && diff<=30;})()))
   );
+
+  function exportVencidosCSV(){
+    if(vencidos.length===0){ alert('Não há seguros vencidos para exportar.'); return; }
+    const headers = ['id','cliente_nome','cliente_cpf','cliente_numero','tipo_seguro','seguradora','premio','vigencia_inicio','vigencia_fim'];
+    const rows = vencidos.map(s => headers.map(h => (s[h] ?? '')).join(';'));
+    const csv = [headers.join(';'), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'seguros_vencidos.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
 
   async function salvarSeguro(e) {
     e.preventDefault();
@@ -163,20 +198,18 @@ export default function Home() {
         {seguros.length > 0 && (
           <button className="btn-secondary" onClick={() => fetchSeguros(order.column, order.ascending)}>⟳ Atualizar</button>
         )}
+        <button className="btn-secondary" onClick={() => setShowAlerts(a=>!a)}>{showAlerts? 'Ocultar alertas':'Mostrar alertas'}</button>
+        {(vencidos.length>0 || vencendo.length>0) && (
+          <button className="btn-secondary" onClick={() => setAlertsAsToast(t=>!t)}>
+            {alertsAsToast? 'Modo inline' : 'Modo toast'}
+          </button>
+        )}
+        {vencidos.length>0 && (
+          <button className="btn-secondary" onClick={exportVencidosCSV}>⬇️ Exportar vencidos</button>
+        )}
       </div>
 
       <input className="search-input" placeholder="🔍 Buscar por nome ou CPF" value={search} onChange={e => setSearch(e.target.value)} />
-
-      {(vencidos.length > 0 || vencendo.length > 0) && (
-        <div className="alerts-wrapper">
-          {vencidos.length > 0 && (
-            <div className="alert alert-vencidos">⛔ <span><strong>{vencidos.length}</strong> seguro(s) vencidos</span></div>
-          )}
-          {vencendo.length > 0 && (
-            <div className="alert alert-vencendo">⚠️ <span><strong>{vencendo.length}</strong> vencem em até 30 dias</span></div>
-          )}
-        </div>
-      )}
 
       {formVisible && (
         <form className="form-wrapper" onSubmit={salvarSeguro}>
@@ -226,6 +259,54 @@ export default function Home() {
           </div>
         </form>
       )}
+
+      {/* Alertas refinados – badges + blocos compactos antes da tabela */}
+      {showAlerts && !alertsAsToast && (vencidos.length > 0 || vencendo.length > 0) && (
+        <div
+          className={`alerts-wrapper ${(!formVisible && (vencidos.length + vencendo.length) > 3) ? 'sticky' : ''}`}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div className="alert-badges" style={{ marginBottom:8 }}>
+            {vencidos.length > 0 && (
+              <div className="alert-badge" title="Seguros vencidos">
+                <span className="dot red"></span>
+                {vencidos.length} vencido{vencidos.length > 1 ? 's' : ''}
+              </div>
+            )}
+            {vencendo.length > 0 && (
+              <div className="alert-badge" title="Seguros que vencem em até 30 dias">
+                <span className="dot yellow"></span>
+                {vencendo.length} em 30 dias
+              </div>
+            )}
+          </div>
+          {vencidos.length > 0 && (
+            <div className="alert alert-vencidos">
+              <span style={{ fontSize:20 }}>⛔</span>
+              <div>
+                <strong>{vencidos.length} seguro{vencidos.length>1?'s':''} vencido{vencidos.length>1?'s':''}</strong><br />
+                <small>Renovar imediatamente para evitar descoberta.</small>
+              </div>
+            </div>
+          )}
+          {vencendo.length > 0 && (
+            <div className="alert alert-vencendo">
+              <span style={{ fontSize:20 }}>⚠️</span>
+              <div>
+                <strong>{vencendo.length} vence{vencendo.length>1?'m':''} em até 30 dias</strong><br />
+                <small>Programe contato com o cliente antes do prazo.</small>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="filters-bar">
+        <button className={`chip-filter ${statusFilter==='todos'?'active':''}`} onClick={()=>setStatusFilter('todos')}>Todos ({seguros.length})</button>
+        <button className={`chip-filter ${statusFilter==='vencidos'?'active':''}`} onClick={()=>setStatusFilter('vencidos')}>Vencidos ({vencidos.length})</button>
+        <button className={`chip-filter ${statusFilter==='vencendo'?'active':''}`} onClick={()=>setStatusFilter('vencendo')}>Em 30 dias ({vencendo.length})</button>
+      </div>
 
       <div className="ordenacao-bar">
         <button className={`ordenacao-btn ${order.column === 'vigencia_fim' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('vigencia_fim', true)}>Vencimento ↑</button>
@@ -284,7 +365,31 @@ export default function Home() {
         </tbody>
       </table>
 
-      {loading && <div className="loading">Carregando...</div>}
+    {loading && <div className="loading">Carregando...</div>}
+
+      {/* Toasts */}
+      {showAlerts && alertsAsToast && (vencidos.length>0 || vencendo.length>0) && (
+        <div className="toast-container" aria-live="polite" aria-atomic="true">
+          {vencidos.length>0 && (
+            <div className="toast vencidos">
+              <div style={{fontSize:22,lineHeight:1}}>⛔</div>
+              <div>
+                <h4>{vencidos.length} vencido{vencidos.length>1?'s':''}</h4>
+                <small>Renovar imediatamente.</small>
+              </div>
+            </div>
+          )}
+          {vencendo.length>0 && (
+            <div className="toast vencendo">
+              <div style={{fontSize:22,lineHeight:1}}>⚠️</div>
+              <div>
+                <h4>{vencendo.length} em 30 dias</h4>
+                <small>Planejar contato com cliente.</small>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
