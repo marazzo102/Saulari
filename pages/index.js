@@ -5,8 +5,16 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   const style = document.createElement('style');
   style.id = 'modern-seguros-styles';
   style.innerHTML = `
-    body { font-family: 'Inter', Arial, sans-serif; background:#f3f8fc; color:#222; }
-    .container-seguros { max-width:1000px; margin:32px auto; background:#fff; border-radius:20px; padding:34px 34px 40px; box-shadow:0 4px 28px #1769aa22; animation:fadeIn .55s ease-out; }
+  body { font-family: 'Inter', Arial, sans-serif; background:#f3f8fc; color:#222; }
+  .app-shell { display:flex; min-height:100vh; }
+  .sidebar { width:240px; background:#0f3554; color:#e9f3fb; padding:22px 18px; position:sticky; top:0; height:100vh; box-shadow: 4px 0 16px #0d274422; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.4px; color:#cfe8f7; }
+  .brand .logo { width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,#4fc3f7,#1976d2); box-shadow:0 6px 16px #1976d244; }
+  .nav { margin-top:16px; display:flex; flex-direction:column; gap:6px; }
+  .nav a { color:#cfe0ee; text-decoration:none; padding:9px 10px; border-radius:8px; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .nav a.active, .nav a:hover { background:#13476f; color:#fff; }
+  .content { flex:1; padding:26px; }
+  .container-seguros { max-width:1100px; margin:0 auto; background:#fff; border-radius:20px; padding:26px 26px 36px; box-shadow:0 4px 28px #1769aa22; animation:fadeIn .55s ease-out; }
     @keyframes fadeIn { from {opacity:0; transform:translateY(16px);} to {opacity:1; transform:translateY(0);} }
     .btn-main { background:linear-gradient(92deg,#4fc3f7,#1976d2); color:#fff; border:none; border-radius:10px; padding:11px 22px; font-weight:600; cursor:pointer; box-shadow:0 3px 10px #1976d244; display:inline-flex; gap:6px; align-items:center; transition:.25s; }
     .btn-main:hover { filter:brightness(1.05); transform:translateY(-2px); box-shadow:0 6px 18px #1976d255; }
@@ -68,6 +76,17 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     .toast.vencendo { border-left:6px solid #ffd600; }
     .toast h4 { margin:0 0 4px; font-size:14px; font-weight:700; }
     .toast small { font-size:11px; opacity:.75; line-height:1.3; }
+  /* Dashboard cards */
+  .kpis { display:grid; grid-template-columns:repeat(4, minmax(160px,1fr)); gap:12px; margin:14px 0 8px; }
+  .kpi { background:linear-gradient(180deg,#ffffff,#f6fbff); border:1px solid #e2edf7; border-radius:14px; padding:14px; box-shadow:0 4px 16px #1769aa13; }
+  .kpi h3 { margin:0; font-size:12px; color:#4b6980; text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .value { margin-top:6px; font-size:22px; font-weight:800; color:#0f3554; }
+  .kpi .sub { font-size:12px; color:#6a8aa2; margin-top:2px; }
+  /* Status pill */
+  .status-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+  .status-ativo { background:#e6f5ec; color:#0a7a3e; border:1px solid #b9e3c9; }
+  .status-vencendo { background:#fff7d6; color:#7a5b00; border:1px solid #ead37b; }
+  .status-vencido { background:#ffe6e6; color:#8b1b1b; border:1px solid #ef9a9a; }
   `;
   document.head.appendChild(style);
 }
@@ -118,6 +137,18 @@ export default function Home() {
     return diff >= 0 && diff <= 30;
   });
   const vencidos = seguros.filter(s => new Date(s.vigencia_fim) < hoje);
+  const ativos = seguros.filter(s => new Date(s.vigencia_fim) >= hoje);
+  const premioAtivos = ativos.reduce((sum, s) => sum + (parseFloat(s.premio) || 0), 0);
+
+  const [uploadingId, setUploadingId] = useState(null);
+
+  function statusDoSeguro(seguro){
+    const fim = new Date(seguro.vigencia_fim);
+    const diff = (fim - hoje) / (1000 * 60 * 60 * 24);
+    if (fim < hoje) return 'vencido';
+    if (diff >= 0 && diff <= 30) return 'vencendo';
+    return 'ativo';
+  }
 
   const segurosFiltrados = seguros.filter(s =>
     (s.cliente_nome.toLowerCase().includes(search.toLowerCase()) || s.cliente_cpf.includes(search)) &&
@@ -134,6 +165,43 @@ export default function Home() {
     const a = document.createElement('a');
     a.href = url; a.download = 'seguros_vencidos.csv'; a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function exportFiltradosCSV(){
+    if(segurosFiltrados.length===0){ alert('Não há itens filtrados para exportar.'); return; }
+    const headers = ['id','cliente_nome','cliente_cpf','cliente_numero','tipo_seguro','seguradora','premio','vigencia_inicio','vigencia_fim','status','apolice_pdf'];
+    const rows = segurosFiltrados.map(s => {
+      const status = statusDoSeguro(s);
+      return headers.map(h => (h==='status'? status : (s[h] ?? ''))).join(';');
+    });
+    const csv = [headers.join(';'), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'seguros_filtrados.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleUploadPDF(seguro, file){
+    try{
+      setUploadingId(seguro.id);
+      const { supabase } = await import('../lib/supabaseClient');
+      const path = `${seguro.id}/${Date.now()}-${file.name}`;
+      const { error: upErr } = await supabase.storage.from('apolices').upload(path, file, { upsert: true, contentType: 'application/pdf' });
+      if(upErr) throw upErr;
+      const { data } = supabase.storage.from('apolices').getPublicUrl(path);
+      const url = data?.publicUrl;
+      if(!url) throw new Error('Falha ao gerar URL pública');
+      // tenta persistir na API existente
+      await fetch('/api/seguros', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...seguro, apolice_pdf: url }) });
+      await fetchSeguros(order.column, order.ascending);
+      alert('PDF anexado com sucesso.');
+    }catch(e){
+      console.error(e);
+      alert('Falha ao anexar PDF. Verifique as credenciais do Supabase e o bucket "apolices".');
+    }finally{
+      setUploadingId(null);
+    }
   }
 
   async function salvarSeguro(e) {
@@ -187,9 +255,45 @@ export default function Home() {
   }
 
   return (
-    <div className="container-seguros">
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand"><div className="logo" /> <span>Saulari Seguros</span></div>
+        <nav className="nav" aria-label="Principal">
+          <a className="active" href="#">📊 Dashboard</a>
+          <a href="#seguros">📋 Seguros</a>
+          <a href="#relatorios">📈 Relatórios</a>
+          <a href="#config">⚙️ Configurações</a>
+        </nav>
+        <div style={{marginTop:'auto', opacity:.8, fontSize:12}}>© {new Date().getFullYear()} Saulari</div>
+      </aside>
+      <main className="content">
+        <div className="container-seguros" id="seguros">
       <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📋 Seguros</h1>
-      <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gestão centralizada dos contratos e vigências.</p>
+          <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gestão centralizada dos contratos e vigências.</p>
+
+          {/* Cards de resumo */}
+          <section className="kpis" aria-label="Resumo">
+            <div className="kpi">
+              <h3>Ativos</h3>
+              <div className="value">{ativos.length}</div>
+              <div className="sub">Apólices vigentes</div>
+            </div>
+            <div className="kpi">
+              <h3>Em 30 dias</h3>
+              <div className="value">{vencendo.length}</div>
+              <div className="sub">Acompanhar renovações</div>
+            </div>
+            <div className="kpi">
+              <h3>Vencidos</h3>
+              <div className="value">{vencidos.length}</div>
+              <div className="sub">Ação imediata</div>
+            </div>
+            <div className="kpi">
+              <h3>Prêmio ativos</h3>
+              <div className="value">R$ {premioAtivos.toLocaleString('pt-BR')}</div>
+              <div className="sub">Soma dos prêmios</div>
+            </div>
+          </section>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
         <button className="btn-main" onClick={() => setFormVisible(v => !v)}>
@@ -206,6 +310,9 @@ export default function Home() {
         )}
         {vencidos.length>0 && (
           <button className="btn-secondary" onClick={exportVencidosCSV}>⬇️ Exportar vencidos</button>
+        )}
+        {segurosFiltrados.length>0 && (
+          <button className="btn-secondary" onClick={exportFiltradosCSV}>⬇️ Exportar filtrados</button>
         )}
       </div>
 
@@ -329,6 +436,7 @@ export default function Home() {
             <th>Seguradora</th>
             <th>Prêmio</th>
             <th>Início</th>
+            <th>Status</th>
             <th>Fim</th>
             <th>Ações</th>
           </tr>
@@ -347,11 +455,26 @@ export default function Home() {
                 <td>{s.seguradora}</td>
                 <td>R$ {s.premio}</td>
                 <td>{s.vigencia_inicio}</td>
+                <td>
+                  {(() => {
+                    const st = statusDoSeguro(s);
+                    return (
+                      <span className={`status-pill status-${st}`}>
+                        {st === 'ativo' ? 'Ativo' : st === 'vencendo' ? 'Vencendo' : 'Vencido'}
+                      </span>
+                    );
+                  })()}
+                </td>
                 <td>{classeIndicador && <span className={`indicador ${classeIndicador}`}></span>}{s.vigencia_fim}</td>
                 <td>
                   <div className="table-actions">
                     <button className="mini-btn" onClick={() => editarSeguro(s)}>Editar</button>
                     <button className="mini-btn danger" onClick={() => excluirSeguro(s.id)}>Excluir</button>
+                    <label className="mini-btn" style={{cursor:'pointer'}}>
+                      Anexar PDF
+                      <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
+                    </label>
+                    {uploadingId===s.id && <span style={{fontSize:12,color:'#1769aa'}}>Enviando...</span>}
                   </div>
                 </td>
               </tr>
@@ -365,7 +488,7 @@ export default function Home() {
         </tbody>
       </table>
 
-    {loading && <div className="loading">Carregando...</div>}
+  {loading && <div className="loading">Carregando...</div>}
 
       {/* Toasts */}
       {showAlerts && alertsAsToast && (vencidos.length>0 || vencendo.length>0) && (
@@ -390,6 +513,8 @@ export default function Home() {
           )}
         </div>
       )}
+        </div>
+      </main>
     </div>
   );
 }
