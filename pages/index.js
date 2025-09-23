@@ -4,9 +4,8 @@ export default function Home() {
   const [order, setOrder] = useState({ column: 'vigencia_fim', ascending: true });
   const [seguros, setSeguros] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
-
+  const [formVisible, setFormVisible] = useState(false);
   // Estados do formulário
   const [formData, setFormData] = useState({
     id: null,
@@ -61,6 +60,8 @@ export default function Home() {
 
   // Salvar novo seguro ou editar existente
   async function salvarSeguro(e) {
+    // Ao salvar, sempre fecha o formulário
+    setFormVisible(false);
     e.preventDefault();
 
     try {
@@ -101,6 +102,7 @@ export default function Home() {
   // Preencher formulário para editar
   function editarSeguro(seguro) {
     setFormData(seguro);
+    setFormVisible(true);
   }
 
   // Excluir seguro
@@ -120,7 +122,41 @@ export default function Home() {
 
   return (
     <div style={{ padding: 20 }}>
+
+
       <h1>📋 Seguros</h1>
+
+      <button
+        onClick={() => setFormVisible((v) => !v)}
+        style={{
+          marginBottom: 15,
+          padding: '8px 16px',
+          background: formVisible ? '#eee' : '#0070f3',
+          color: formVisible ? '#333' : '#fff',
+          border: 'none',
+          borderRadius: 4,
+          cursor: 'pointer',
+          fontWeight: 'bold',
+        }}
+      >
+        {formVisible ? 'Minimizar formulário' : '➕ Novo Seguro'}
+      </button>
+
+      <button
+        onClick={() => setFormVisible((v) => !v)}
+        style={{
+          marginBottom: 15,
+          padding: '8px 16px',
+          background: formVisible ? '#eee' : '#0070f3',
+          color: formVisible ? '#333' : '#fff',
+          border: 'none',
+          borderRadius: 4,
+          cursor: 'pointer',
+          fontWeight: 'bold',
+        }}
+      >
+        {formVisible ? 'Minimizar formulário' : '➕ Novo Seguro'}
+      </button>
 
       {loading && <p>Carregando...</p>}
 
@@ -151,129 +187,131 @@ export default function Home() {
       </div>
 
       {/* Formulário de cadastro/edição */}
-      <form
-        onSubmit={salvarSeguro}
-        style={{ marginBottom: 20, background: "#f4f4f4", padding: 15 }}
-      >
-        <h2>{formData.id ? "✏️ Editar Seguro" : "➕ Novo Seguro"}</h2>
-
-        <input
-          placeholder="Nome do Cliente"
-          value={formData.cliente_nome}
-          onChange={(e) =>
-            setFormData({ ...formData, cliente_nome: e.target.value })
-          }
-          required
-          style={{
-            display: "block",
-            marginBottom: 8,
-            width: "100%",
-            padding: 8,
-          }}
-        />
-        <input
-          placeholder="CPF"
-          value={formData.cliente_cpf}
-          onChange={(e) =>
-            setFormData({ ...formData, cliente_cpf: e.target.value })
-          }
-          required
-          style={{
-            display: "block",
-            marginBottom: 8,
-            width: "100%",
-            padding: 8,
-          }}
-        />
-        <input
-          placeholder="Telefone"
-          value={formData.cliente_numero}
-          onChange={(e) =>
-            setFormData({ ...formData, cliente_numero: e.target.value })
-          }
-          style={{
-            display: "block",
-            marginBottom: 8,
-            width: "100%",
-            padding: 8,
-          }}
-        />
-        <input
-          placeholder="Tipo de Seguro"
-          value={formData.tipo_seguro}
-          onChange={(e) =>
-            setFormData({ ...formData, tipo_seguro: e.target.value })
-          }
-          required
-          style={{
-            display: "block",
-            marginBottom: 8,
-            width: "100%",
-            padding: 8,
-          }}
-        />
-        <input
-          placeholder="Seguradora"
-          value={formData.seguradora}
-          onChange={(e) =>
-            setFormData({ ...formData, seguradora: e.target.value })
-          }
-          required
-          style={{
-            display: "block",
-            marginBottom: 8,
-            width: "100%",
-            padding: 8,
-          }}
-        />
-        <input
-          placeholder="Prêmio"
-          type="number"
-          value={formData.premio}
-          onChange={(e) => setFormData({ ...formData, premio: e.target.value })}
-          style={{
-            display: "block",
-            marginBottom: 8,
-            width: "100%",
-            padding: 8,
-          }}
-        />
-        <label>Vigência Início:</label>
-        <input
-          type="date"
-          value={formData.vigencia_inicio}
-          onChange={(e) =>
-            setFormData({ ...formData, vigencia_inicio: e.target.value })
-          }
-          style={{
-            display: "block",
-            marginBottom: 8,
-            width: "100%",
-            padding: 8,
-          }}
-        />
-        <label>Vigência Fim:</label>
-        <input
-          type="date"
-          value={formData.vigencia_fim}
-          onChange={(e) =>
-            setFormData({ ...formData, vigencia_fim: e.target.value })
-          }
-          style={{
-            display: "block",
-            marginBottom: 8,
-            width: "100%",
-            padding: 8,
-          }}
-        />
-
-        <button
-          type="submit"
-          style={{ padding: 10, background: "green", color: "white" }}
+      {formVisible && (
+        <form
+          onSubmit={salvarSeguro}
+          style={{ marginBottom: 20, background: "#f4f4f4", padding: 15 }}
         >
-          {formData.id ? "Salvar Alterações" : "Cadastrar Seguro"}
-        </button>
-      </form>
+          <h2>{formData.id ? "✏️ Editar Seguro" : "➕ Novo Seguro"}</h2>
+
+          <input
+            placeholder="Nome do Cliente"
+            value={formData.cliente_nome}
+            onChange={(e) =>
+              setFormData({ ...formData, cliente_nome: e.target.value })
+            }
+            required
+            style={{
+              display: "block",
+              marginBottom: 8,
+              width: "100%",
+              padding: 8,
+            }}
+          />
+          <input
+            placeholder="CPF"
+            value={formData.cliente_cpf}
+            onChange={(e) =>
+              setFormData({ ...formData, cliente_cpf: e.target.value })
+            }
+            required
+            style={{
+              display: "block",
+              marginBottom: 8,
+              width: "100%",
+              padding: 8,
+            }}
+          />
+          <input
+            placeholder="Telefone"
+            value={formData.cliente_numero}
+            onChange={(e) =>
+              setFormData({ ...formData, cliente_numero: e.target.value })
+            }
+            style={{
+              display: "block",
+              marginBottom: 8,
+              width: "100%",
+              padding: 8,
+            }}
+          />
+          <input
+            placeholder="Tipo de Seguro"
+            value={formData.tipo_seguro}
+            onChange={(e) =>
+              setFormData({ ...formData, tipo_seguro: e.target.value })
+            }
+            required
+            style={{
+              display: "block",
+              marginBottom: 8,
+              width: "100%",
+              padding: 8,
+            }}
+          />
+          <input
+            placeholder="Seguradora"
+            value={formData.seguradora}
+            onChange={(e) =>
+              setFormData({ ...formData, seguradora: e.target.value })
+            }
+            required
+            style={{
+              display: "block",
+              marginBottom: 8,
+              width: "100%",
+              padding: 8,
+            }}
+          />
+          <input
+            placeholder="Prêmio"
+            type="number"
+            value={formData.premio}
+            onChange={(e) => setFormData({ ...formData, premio: e.target.value })}
+            style={{
+              display: "block",
+              marginBottom: 8,
+              width: "100%",
+              padding: 8,
+            }}
+          />
+          <label>Vigência Início:</label>
+          <input
+            type="date"
+            value={formData.vigencia_inicio}
+            onChange={(e) =>
+              setFormData({ ...formData, vigencia_inicio: e.target.value })
+            }
+            style={{
+              display: "block",
+              marginBottom: 8,
+              width: "100%",
+              padding: 8,
+            }}
+          />
+          <label>Vigência Fim:</label>
+          <input
+            type="date"
+            value={formData.vigencia_fim}
+            onChange={(e) =>
+              setFormData({ ...formData, vigencia_fim: e.target.value })
+            }
+            style={{
+              display: "block",
+              marginBottom: 8,
+              width: "100%",
+              padding: 8,
+            }}
+          />
+
+          <button
+            type="submit"
+            style={{ padding: 10, background: "green", color: "white" }}
+          >
+            {formData.id ? "Salvar Alterações" : "Cadastrar Seguro"}
+          </button>
+        </form>
+      )}
 
 
       {/* Botões de ordenação */}
