@@ -39,12 +39,17 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Verificar seguros que vencem em até 30 dias
+
+  // Verificar seguros já vencidos e vencendo em até 30 dias
   const hoje = new Date();
   const vencendo = seguros.filter((s) => {
     const fim = new Date(s.vigencia_fim);
     const diff = (fim - hoje) / (1000 * 60 * 60 * 24);
     return diff >= 0 && diff <= 30;
+  });
+  const vencidos = seguros.filter((s) => {
+    const fim = new Date(s.vigencia_fim);
+    return fim < hoje;
   });
 
   // Filtro de busca
@@ -100,6 +105,8 @@ export default function Home() {
 
   // Excluir seguro
   async function excluirSeguro(id) {
+    const confirmar = window.confirm('Tem certeza que deseja apagar este seguro? Esta ação não poderá ser desfeita.');
+    if (!confirmar) return;
     try {
       const res = await fetch(`/api/seguros?id=${id}`, {
         method: 'DELETE',
@@ -117,11 +124,18 @@ export default function Home() {
 
       {loading && <p>Carregando...</p>}
 
-      {/* Alerta de vencimento */}
+
+      {/* Alerta de vencidos */}
+      {vencidos.length > 0 && (
+        <div style={{ background: "#ffd6d6", padding: 10, margin: "10px 0", color: '#a00', border: '1px solid #a00' }}>
+          <strong>⛔ Atenção:</strong> {vencidos.length} seguro(s) já estão vencidos!
+        </div>
+      )}
+
+      {/* Alerta de vencimento em até 30 dias */}
       {vencendo.length > 0 && (
-        <div style={{ background: "#ffe5e5", padding: 10, margin: "10px 0" }}>
-          <strong>⚠️ Atenção:</strong> {vencendo.length} seguros vencem em até
-          30 dias!
+        <div style={{ background: "#ffe5e5", padding: 10, margin: "10px 0", color: '#a66', border: '1px solid #a66' }}>
+          <strong>⚠️ Aviso:</strong> {vencendo.length} seguro(s) vencem em até 30 dias!
         </div>
       )}
 
@@ -336,26 +350,40 @@ export default function Home() {
           </tr>
         </thead>
         <tbody>
-          {segurosFiltrados.map((s) => (
-            <tr key={s.id}>
-              <td>{s.cliente_nome}</td>
-              <td>{s.cliente_cpf}</td>
-              <td>{s.tipo_seguro}</td>
-              <td>{s.seguradora}</td>
-              <td>R$ {s.premio}</td>
-              <td>{s.vigencia_inicio}</td>
-              <td>{s.vigencia_fim}</td>
-              <td>
-                <button onClick={() => editarSeguro(s)}>✏️ Editar</button>
-                <button
-                  onClick={() => excluirSeguro(s.id)}
-                  style={{ color: "red" }}
-                >
-                  🗑️ Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
+          {segurosFiltrados.map((s) => {
+            const fim = new Date(s.vigencia_fim);
+            const hoje = new Date();
+            const diff = (fim - hoje) / (1000 * 60 * 60 * 24);
+            let indicador = null;
+            if (fim < hoje) {
+              indicador = <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#d00', marginRight: 6, border: '1px solid #a00' }} title="Seguro vencido"></span>;
+            } else if (diff >= 0 && diff <= 30) {
+              indicador = <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#ffd600', marginRight: 6, border: '1px solid #bba100' }} title="Vence em até 30 dias"></span>;
+            }
+            return (
+              <tr key={s.id}>
+                <td>{s.cliente_nome}</td>
+                <td>{s.cliente_cpf}</td>
+                <td>{s.tipo_seguro}</td>
+                <td>{s.seguradora}</td>
+                <td>R$ {s.premio}</td>
+                <td>{s.vigencia_inicio}</td>
+                <td>
+                  {indicador}
+                  {s.vigencia_fim}
+                </td>
+                <td>
+                  <button onClick={() => editarSeguro(s)}>✏️ Editar</button>
+                  <button
+                    onClick={() => excluirSeguro(s.id)}
+                    style={{ color: "red" }}
+                  >
+                    🗑️ Excluir
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
