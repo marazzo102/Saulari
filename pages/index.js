@@ -270,34 +270,6 @@ export default function Home() {
     );
   }
 
-  // Exporta relatório de prêmios por mês
-  function exportRelatorioPremios() {
-    if (!seguros || !Array.isArray(seguros) || seguros.length === 0) {
-      alert('Não há dados para exportar.');
-      return;
-    }
-    const premiosPorMes = {};
-    seguros.forEach(s => {
-      if (!s.vigencia_inicio || !s.premio) return;
-      const dt = new Date(s.vigencia_inicio);
-      if (isNaN(dt)) return;
-      const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
-      premiosPorMes[key] = (premiosPorMes[key] || 0) + (parseFloat(s.premio) || 0);
-    });
-    const rows = Object.entries(premiosPorMes).map(([mes, premio]) => [mes, premio.toFixed(2).replace('.', ',')]);
-    if (!rows.length) {
-      alert('Não há dados válidos para exportar.');
-      return;
-    }
-    let csv = 'Mes/Ano;Premio Total (R$)\n';
-    csv += rows.map(r => r.join(';')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'relatorio-premios-mensal.csv'; a.click();
-    URL.revokeObjectURL(url);
-  }
-
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -305,8 +277,6 @@ export default function Home() {
         <nav className="nav" aria-label="Principal">
           <NavLink label="Dashboard" icon="📊" value="dashboard" />
           <NavLink label="Seguros" icon="📋" value="seguros" />
-          <NavLink label="Relatórios" icon="📈" value="relatorios" />
-          <NavLink label="Configurações" icon="⚙️" value="config" />
         </nav>
         <div style={{marginTop:'auto', opacity:.8, fontSize:12}}>© {new Date().getFullYear()} Saulari</div>
       </aside>
@@ -315,7 +285,7 @@ export default function Home() {
           <div className="container-seguros">
             <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📊 Dashboard</h1>
             <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Visão geral dos seguros e indicadores.</p>
-            {/* Cards de resumo */}
+            {/* Cards de resumo */ null}
             <section className="kpis" aria-label="Resumo">
               <div className="kpi">
                 <h3>Ativos</h3>
@@ -606,36 +576,32 @@ export default function Home() {
           )}
         </div>
       )}
-        </div>
-        )}
-        {section === 'relatorios' && (
-          <div className="container-seguros">
-            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📈 Relatórios</h1>
-            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gere e exporte relatórios detalhados dos seguros.</p>
-            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Relatório de prêmios recebidos por mês:</b>
-              <br />
-              <span style={{fontSize:13, color:'#4b6980'}}>Exporta um CSV com a soma dos prêmios por mês/ano.</span>
-            </div>
-            <button className="btn-main" onClick={exportRelatorioPremios}>Exportar relatório CSV</button>
-          </div>
-        )}
-
-
         {section === 'config' && (
           <div className="container-seguros">
             <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>⚙️ Configurações</h1>
             <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Personalize preferências, dados da empresa e integrações.</p>
             <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Configurações gerais (exemplo):</b>
-              <ul style={{color:'#4b6980', fontSize:14, margin:'12px 0 0 18px'}}>
-                <li>Nome da empresa, logo, CNPJ</li>
-                <li>Preferências de tema</li>
-                <li>Usuários do sistema</li>
-                <li>Integrações (WhatsApp, e-mail, backup)</li>
-              </ul>
-            </div>
-            <button className="btn-main" disabled style={{opacity:.6}}>Salvar configurações (em breve)</button>
+              <b>Preferências de Notificação</b>
+              <form style={{marginTop:16, marginBottom:24, display:'grid', gap:18, maxWidth:420}}>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Receber alertas por e-mail para seguros vencendo
+                </label>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Receber alertas por WhatsApp para seguros vencendo
+                </label>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Receber alertas por e-mail para seguros vencidos
+                </label>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Receber alertas por WhatsApp para seguros vencidos
+                </label>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Ativar notificações de renovação automática
+                </label>
+                <button className="btn-main" type="button" style={{marginTop:10, width:180}}>Salvar preferências</button>
+              </form>
+            </div> {/* Fim Preferências de Notificação */}
+            {/* Outras seções de configurações... */}
           </div>
         )}
       </main>
