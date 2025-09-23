@@ -5,7 +5,9 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   const style = document.createElement('style');
   style.id = 'modern-seguros-styles';
   style.innerHTML = `
-  body { font-family: 'Inter', Arial, sans-serif; background:#f3f8fc; color:#222; }
+  :root { --primary:#1976d2; --primaryAlt:#4fc3f7; --bg:#f3f8fc; --text:#222; }
+  [data-theme="dark"] { --bg:#0f1720; --text:#e6edf5; --primary:#64b5f6; --primaryAlt:#2196f3; }
+  body { font-family: 'Inter', Arial, sans-serif; background:var(--bg); color:var(--text); }
   .app-shell { display:flex; min-height:100vh; }
   .sidebar { width:240px; background:#0f3554; color:#e9f3fb; padding:22px 18px; position:sticky; top:0; height:100vh; box-shadow: 4px 0 16px #0d274422; }
   .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.4px; color:#cfe8f7; }
@@ -16,7 +18,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   .content { flex:1; padding:26px; }
   .container-seguros { max-width:1100px; margin:0 auto; background:#fff; border-radius:20px; padding:26px 26px 36px; box-shadow:0 4px 28px #1769aa22; animation:fadeIn .55s ease-out; }
     @keyframes fadeIn { from {opacity:0; transform:translateY(16px);} to {opacity:1; transform:translateY(0);} }
-    .btn-main { background:linear-gradient(92deg,#4fc3f7,#1976d2); color:#fff; border:none; border-radius:10px; padding:11px 22px; font-weight:600; cursor:pointer; box-shadow:0 3px 10px #1976d244; display:inline-flex; gap:6px; align-items:center; transition:.25s; }
+  .btn-main { background:linear-gradient(92deg,var(--primaryAlt),var(--primary)); color:#fff; border:none; border-radius:10px; padding:11px 22px; font-weight:600; cursor:pointer; box-shadow:0 3px 10px #1976d244; display:inline-flex; gap:6px; align-items:center; transition:.25s; }
     .btn-main:hover { filter:brightness(1.05); transform:translateY(-2px); box-shadow:0 6px 18px #1976d255; }
     .btn-secondary { background:#e6eef7; color:#1769aa; border:none; border-radius:8px; padding:9px 18px; font-weight:500; cursor:pointer; transition:.25s; }
     .btn-secondary:hover { background:#d2e4f7; }
@@ -94,6 +96,9 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
 export default function Home() {
 
   const [order, setOrder] = useState({ column: 'vigencia_fim', ascending: true });
+  const [theme, setTheme] = useState(typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'light') : 'light');
+  const [primary, setPrimary] = useState(typeof window !== 'undefined' ? (localStorage.getItem('primary') || '#1976d2') : '#1976d2');
+  const [primaryAlt, setPrimaryAlt] = useState(typeof window !== 'undefined' ? (localStorage.getItem('primaryAlt') || '#4fc3f7') : '#4fc3f7');
   const [seguros, setSeguros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -113,6 +118,23 @@ export default function Home() {
     vigencia_fim: '',
   });
 
+  const [logs, setLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsSearch, setLogsSearch] = useState('');
+
+  // Helper para registrar ações no backend (Supabase)
+  async function logAction({ action, entity = null, entity_id = null, user = null, details = null }) {
+    try {
+      await fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, entity, entity_id, user, details }),
+      });
+    } catch (e) {
+      console.warn('Falha ao registrar log:', e);
+    }
+  }
+
   const fetchSeguros = async (column = order.column, ascending = order.ascending) => {
     setLoading(true);
     try {
@@ -130,6 +152,19 @@ export default function Home() {
   useEffect(() => { fetchSeguros(); // inicial
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+      document.documentElement.style.setProperty('--primary', primary);
+      document.documentElement.style.setProperty('--primaryAlt', primaryAlt);
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('theme', theme);
+      localStorage.setItem('primary', primary);
+      localStorage.setItem('primaryAlt', primaryAlt);
+    }
+  }, [theme, primary, primaryAlt]);
 
   const hoje = new Date();
   const vencendo = seguros.filter(s => {
@@ -166,6 +201,8 @@ export default function Home() {
     const a = document.createElement('a');
     a.href = url; a.download = 'seguros_vencidos.csv'; a.click();
     URL.revokeObjectURL(url);
+    // Log de exportação
+    logAction({ action: 'export_csv', entity: 'seguros', details: { tipo: 'vencidos', quantidade: vencidos.length } });
   }
 
   function exportFiltradosCSV(){
@@ -181,6 +218,8 @@ export default function Home() {
     const a = document.createElement('a');
     a.href = url; a.download = 'seguros_filtrados.csv'; a.click();
     URL.revokeObjectURL(url);
+    // Log de exportação
+    logAction({ action: 'export_csv', entity: 'seguros', details: { tipo: 'filtrados', filtro_status: statusFilter, termo_busca: search, quantidade: segurosFiltrados.length } });
   }
 
   async function handleUploadPDF(seguro, file){
@@ -197,6 +236,8 @@ export default function Home() {
       await fetch('/api/seguros', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...seguro, apolice_pdf: url }) });
       await fetchSeguros(order.column, order.ascending);
       alert('PDF anexado com sucesso.');
+      // Log da ação de upload
+      logAction({ action: 'upload_pdf', entity: 'seguro', entity_id: seguro.id, details: { arquivo: file.name, caminho: path } });
     }catch(e){
       console.error(e);
       alert('Falha ao anexar PDF. Verifique as credenciais do Supabase e o bucket "apolices".');
@@ -221,6 +262,12 @@ export default function Home() {
         });
       }
       if (!res.ok) throw new Error('Erro ao salvar');
+      // Log de criação/atualização
+      if (formData.id) {
+        logAction({ action: 'update', entity: 'seguro', entity_id: formData.id, details: { campos: { ...formData } } });
+      } else {
+        logAction({ action: 'create', entity: 'seguro', details: { campos: { ...formData, id: undefined } } });
+      }
       resetForm();
       setFormVisible(false);
       fetchSeguros(order.column, order.ascending);
@@ -238,6 +285,8 @@ export default function Home() {
       const res = await fetch(`/api/seguros?id=${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Erro ao excluir');
       fetchSeguros(order.column, order.ascending);
+      // Log de exclusão
+      logAction({ action: 'delete', entity: 'seguro', entity_id: id });
     } catch (e) { console.error(e); }
   }
 
@@ -296,6 +345,61 @@ export default function Home() {
     const a = document.createElement('a');
     a.href = url; a.download = 'relatorio-premios-mensal.csv'; a.click();
     URL.revokeObjectURL(url);
+    // Log de exportação de relatório
+    logAction({ action: 'export_csv', entity: 'relatorios', details: { tipo: 'premios_mensal', meses: rows.length } });
+  }
+
+  // Nova função para buscar logs
+  async function fetchLogs() {
+    setLogsLoading(true);
+    try {
+      const res = await fetch('/api/logs');
+      if (!res.ok) throw new Error('Erro ao buscar logs');
+      const data = await res.json();
+      setLogs(data);
+    } catch (e) {
+      console.error(e);
+    }
+    setLogsLoading(false);
+  }
+
+  // Chama fetchLogs ao abrir a seção de configurações
+  useEffect(() => {
+    if (section === 'config') {
+      fetchLogs();
+    }
+  }, [section]);
+
+  // Função para atualizar logs
+  function refreshLogs() {
+    fetchLogs();
+  }
+
+  function exportLogsCSV() {
+    const visible = (logs||[]).filter(l => {
+      const s = logsSearch.trim().toLowerCase();
+      if (!s) return true;
+      const blob = `${l.action||''} ${l.entity||''} ${l.entity_id||''} ${l.user||''} ${JSON.stringify(l.details||'')}`.toLowerCase();
+      return blob.includes(s);
+    });
+    if (visible.length === 0) { alert('Sem logs para exportar.'); return; }
+    const headers = ['id','created_at','action','entity','entity_id','user','details'];
+    const rows = visible.map(l => [
+      l.id,
+      l.created_at,
+      l.action,
+      l.entity || '',
+      l.entity_id || '',
+      l.user || '',
+      typeof l.details === 'object' ? JSON.stringify(l.details) : (l.details || '')
+    ].map(v => String(v).replaceAll(';', ',')).join(';'));
+    const csv = [headers.join(';'), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'logs.csv'; a.click();
+    URL.revokeObjectURL(url);
+    logAction({ action: 'export_csv', entity: 'logs', details: { quantidade: visible.length } });
   }
 
   return (
@@ -624,18 +728,101 @@ export default function Home() {
 
         {section === 'config' && (
           <div className="container-seguros">
-            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>⚙️ Configurações</h1>
+            <h1 style={{ color: 'var(--primary)', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>⚙️ Configurações</h1>
             <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Personalize preferências, dados da empresa e integrações.</p>
             <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Configurações gerais (exemplo):</b>
-              <ul style={{color:'#4b6980', fontSize:14, margin:'12px 0 0 18px'}}>
-                <li>Nome da empresa, logo, CNPJ</li>
-                <li>Preferências de tema</li>
-                <li>Usuários do sistema</li>
-                <li>Integrações (WhatsApp, e-mail, backup)</li>
-              </ul>
-            </div>
-            <button className="btn-main" disabled style={{opacity:.6}}>Salvar configurações (em breve)</button>
+              <b>Preferências de Notificação</b>
+              <form style={{marginTop:16, marginBottom:24, display:'grid', gap:18, maxWidth:420}}>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Receber alertas por e-mail para seguros vencendo
+                </label>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Receber alertas por WhatsApp para seguros vencendo
+                </label>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Receber alertas por e-mail para seguros vencidos
+                </label>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Receber alertas por WhatsApp para seguros vencidos
+                </label>
+                <label style={{display:'flex', alignItems:'center', gap:10}}>
+                  <input type="checkbox" /> Ativar notificações de renovação automática
+                </label>
+                <button className="btn-main" type="button" style={{marginTop:10, width:180}}>Salvar preferências</button>
+              </form>
+            </div> {/* Fim Preferências de Notificação */}
+
+            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
+              <b>Personalização Visual</b>
+              <div style={{display:'grid', gap:14, marginTop:12, maxWidth:520}}>
+                <div>
+                  <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>Tema</label>
+                  <div style={{display:'flex', gap:8}}>
+                    <button type="button" className="btn-secondary" onClick={() => setTheme('light')} aria-pressed={theme==='light'}>Claro</button>
+                    <button type="button" className="btn-secondary" onClick={() => setTheme('dark')} aria-pressed={theme==='dark'}>Escuro</button>
+                  </div>
+                </div>
+                <div>
+                  <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>Cor Primária</label>
+                  <input type="color" value={primary} onChange={(e)=> setPrimary(e.target.value)} />
+                </div>
+                <div>
+                  <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>Cor Primária (Alt)</label>
+                  <input type="color" value={primaryAlt} onChange={(e)=> setPrimaryAlt(e.target.value)} />
+                </div>
+                <div style={{display:'flex', gap:8}}>
+                  <button className="btn-secondary" type="button" onClick={()=>{ setPrimary('#1976d2'); setPrimaryAlt('#4fc3f7'); }}>Restaurar cores padrão</button>
+                </div>
+              </div>
+            </div> {/* Fim Personalização Visual */}
+
+            {/* Logs e Auditoria */}
+            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
+              <b>Logs e Auditoria</b>
+              <div style={{display:'flex', gap:8, alignItems:'center', marginTop:12}}>
+                <input className="search-input" placeholder="Pesquisar em ação/entidade/usuário/detalhes" value={logsSearch} onChange={e=>setLogsSearch(e.target.value)} />
+                <button className="btn-secondary" type="button" onClick={refreshLogs} disabled={logsLoading}>{logsLoading? 'Carregando...':'Atualizar'}</button>
+                <button className="btn-secondary" type="button" onClick={exportLogsCSV}>⬇️ Exportar CSV</button>
+              </div>
+              <div style={{marginTop:12, maxHeight:320, overflow:'auto', border:'1px solid #e2e9f0', borderRadius:10}}>
+                <table className="seguros" style={{marginTop:0}}>
+                  <thead>
+                    <tr>
+                      <th style={{width:160}}>Data</th>
+                      <th>Ação</th>
+                      <th>Entidade</th>
+                      <th>ID</th>
+                      <th>Usuário</th>
+                      <th>Detalhes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(logs||[])
+                      .filter(l => {
+                        const s = logsSearch.trim().toLowerCase();
+                        if (!s) return true;
+                        const blob = `${l.action||''} ${l.entity||''} ${l.entity_id||''} ${l.user||''} ${JSON.stringify(l.details||'')}`.toLowerCase();
+                        return blob.includes(s);
+                      })
+                      .map(l => (
+                      <tr key={l.id}>
+                        <td>{new Date(l.created_at).toLocaleString('pt-BR')}</td>
+                        <td>{l.action}</td>
+                        <td>{l.entity||'-'}</td>
+                        <td>{l.entity_id||'-'}</td>
+                        <td>{l.user||'-'}</td>
+                        <td style={{maxWidth:280, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{typeof l.details === 'object' ? JSON.stringify(l.details) : (l.details || '-')}</td>
+                      </tr>
+                    ))}
+                    {(!logs || logs.length===0) && (
+                      <tr><td colSpan={6} style={{textAlign:'center', padding:16, color:'#4b6980'}}>Sem logs disponíveis.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div> {/* Fim Logs e Auditoria */}
+
+            {/* Outras seções de configurações... */}
           </div>
         )}
       </main>
