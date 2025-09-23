@@ -92,6 +92,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
 }
 
 export default function Home() {
+
   const [order, setOrder] = useState({ column: 'vigencia_fim', ascending: true });
   const [seguros, setSeguros] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -584,13 +585,15 @@ export default function Home() {
             <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📈 Relatórios</h1>
             <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gere e exporte relatórios detalhados dos seguros.</p>
             <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Relatório de prêmios recebidos (exemplo):</b>
+              <b>Relatório de prêmios recebidos por mês:</b>
               <br />
-              <span style={{fontSize:13, color:'#4b6980'}}>Selecione filtros, exporte PDF/Excel, integre gráficos e tabelas.</span>
+              <span style={{fontSize:13, color:'#4b6980'}}>Exporta um CSV com a soma dos prêmios por mês/ano.</span>
             </div>
-            <button className="btn-main" disabled style={{opacity:.6}}>Exportar relatório (em breve)</button>
+            <button className="btn-main" onClick={exportRelatorioPremios}>Exportar relatório CSV</button>
           </div>
         )}
+
+
         {section === 'config' && (
           <div className="container-seguros">
             <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>⚙️ Configurações</h1>
