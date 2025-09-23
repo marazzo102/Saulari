@@ -270,6 +270,34 @@ export default function Home() {
     );
   }
 
+  // Exporta relatório de prêmios por mês
+  function exportRelatorioPremios() {
+    if (!seguros || !Array.isArray(seguros) || seguros.length === 0) {
+      alert('Não há dados para exportar.');
+      return;
+    }
+    const premiosPorMes = {};
+    seguros.forEach(s => {
+      if (!s.vigencia_inicio || !s.premio) return;
+      const dt = new Date(s.vigencia_inicio);
+      if (isNaN(dt)) return;
+      const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+      premiosPorMes[key] = (premiosPorMes[key] || 0) + (parseFloat(s.premio) || 0);
+    });
+    const rows = Object.entries(premiosPorMes).map(([mes, premio]) => [mes, premio.toFixed(2).replace('.', ',')]);
+    if (!rows.length) {
+      alert('Não há dados válidos para exportar.');
+      return;
+    }
+    let csv = 'Mes/Ano;Premio Total (R$)\n';
+    csv += rows.map(r => r.join(';')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'relatorio-premios-mensal.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
