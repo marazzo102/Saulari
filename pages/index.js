@@ -142,22 +142,6 @@ export default function Home() {
         {formVisible ? 'Minimizar formulário' : '➕ Novo Seguro'}
       </button>
 
-      <button
-        onClick={() => setFormVisible((v) => !v)}
-        style={{
-          marginBottom: 15,
-          padding: '8px 16px',
-          background: formVisible ? '#eee' : '#0070f3',
-          color: formVisible ? '#333' : '#fff',
-          border: 'none',
-          borderRadius: 4,
-          cursor: 'pointer',
-          fontWeight: 'bold',
-        }}
-      >
-        {formVisible ? 'Minimizar formulário' : '➕ Novo Seguro'}
-      </button>
-
       {loading && <p>Carregando...</p>}
 
 
@@ -304,12 +288,31 @@ export default function Home() {
             }}
           />
 
-          <button
-            type="submit"
-            style={{ padding: 10, background: "green", color: "white" }}
-          >
-            {formData.id ? "Salvar Alterações" : "Cadastrar Seguro"}
-          </button>
+          <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+            <button
+              type="submit"
+              style={{ padding: 10, background: "green", color: "white" }}
+            >
+              {formData.id ? "Salvar Alterações" : "Cadastrar Seguro"}
+            </button>
+            <button
+              type="button"
+              style={{ padding: 10, background: "#ccc", color: "#333" }}
+              onClick={() => setFormData({
+                id: null,
+                cliente_nome: "",
+                cliente_cpf: "",
+                cliente_numero: "",
+                tipo_seguro: "",
+                seguradora: "",
+                premio: "",
+                vigencia_inicio: "",
+                vigencia_fim: "",
+              })}
+            >
+              Limpar formulário
+            </button>
+          </div>
         </form>
       )}
 
