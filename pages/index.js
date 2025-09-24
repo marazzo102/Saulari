@@ -281,11 +281,12 @@ export default function Home() {
       const path = `${seguro.id}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from('apolices').upload(path, file, { upsert: true, contentType: 'application/pdf' });
       if(upErr) throw upErr;
-      const { data } = supabase.storage.from('apolices').getPublicUrl(path);
-      const url = data?.publicUrl;
-      if(!url) throw new Error('Falha ao gerar URL pública');
+      
+      // Com Service Role Key, salvamos o path interno em vez da URL pública
+      const internalPath = `apolices/${path}`;
+      
       // tenta persistir na API existente
-      await fetch('/api/seguros', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...seguro, apolice_pdf: url }) });
+      await fetch('/api/seguros', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...seguro, apolice_pdf: internalPath }) });
       await fetchSeguros(order.column, order.ascending);
       alert('PDF anexado com sucesso.');
       // Log da ação de upload
@@ -726,9 +727,7 @@ export default function Home() {
                     {s.apolice_pdf && (
                       <a
                         className="mini-btn"
-                        href={
-                          `/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf.replace(/^.*\/apolices\//, 'apolices/'))}`
-                        }
+                        href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{background:'#e6f5ec', color:'#0a7a3e', border:'1px solid #b9e3c9'}}

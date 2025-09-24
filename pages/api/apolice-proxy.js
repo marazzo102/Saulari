@@ -7,7 +7,8 @@ export default async function handler(req, res) {
 
   // Carrega variáveis do ambiente
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Usa Service Role Key se disponível, senão ANON KEY
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     return res.status(500).json({ error: 'Supabase env não configurado' });
   }
@@ -23,7 +24,12 @@ export default async function handler(req, res) {
   });
 
   if (!response.ok) {
-    return res.status(response.status).json({ error: 'Erro ao buscar PDF', status: response.status });
+    console.error(`Storage error: ${response.status} - ${response.statusText}`);
+    return res.status(response.status).json({ 
+      error: 'Erro ao buscar PDF', 
+      status: response.status,
+      details: response.statusText
+    });
   }
 
   // Copia headers relevantes
