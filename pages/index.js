@@ -457,6 +457,59 @@ export default function Home() {
 
   return (
     <div className="app-shell">
+      {!currentUser ? (
+        // Tela de Login (quando não autenticado)
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: 40, boxShadow: '0 4px 28px #1769aa22', maxWidth: 400, width: '100%' }}>
+            <div style={{ textAlign: 'center', marginBottom: 30 }}>
+              <div className="brand" style={{ justifyContent: 'center', fontSize: 24, marginBottom: 10 }}>
+                <div className="logo" /> <span>Saulari Seguros</span>
+              </div>
+              <p style={{ color: '#4b6980', margin: 0 }}>Faça login para acessar o sistema</p>
+            </div>
+            
+            <form onSubmit={(e)=>{ e.preventDefault(); signIn(); }} style={{ display: 'grid', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#4b6980', display: 'block', marginBottom: 6 }}>E-mail</label>
+                <input 
+                  className="search-input"
+                  type="email"
+                  value={authEmail} 
+                  onChange={(e)=>setAuthEmail(e.target.value)} 
+                  placeholder="email@exemplo.com"
+                  required
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#4b6980', display: 'block', marginBottom: 6 }}>Senha</label>
+                <input 
+                  className="search-input"
+                  type="password" 
+                  value={authPassword} 
+                  onChange={(e)=>setAuthPassword(e.target.value)} 
+                  placeholder="••••••••"
+                  required
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+                <button type="submit" className="btn-main" disabled={authLoading} style={{ width: '100%' }}>
+                  {authLoading ? 'Entrando...' : 'Entrar'}
+                </button>
+                <button type="button" className="btn-secondary" onClick={signUp} disabled={authLoading} style={{ width: '100%' }}>
+                  Criar conta
+                </button>
+              </div>
+              <small style={{ color: '#4b6980', textAlign: 'center', fontSize: 12 }}>
+                Obs.: Criação de conta pode exigir confirmação por e-mail
+              </small>
+            </form>
+          </div>
+        </div>
+      ) : (
+        // Sistema principal (quando autenticado)
+        <>
       <aside className="sidebar">
         <div className="brand"><div className="logo" /> <span>Saulari Seguros</span></div>
         <nav className="nav" aria-label="Principal">
@@ -467,15 +520,9 @@ export default function Home() {
         </nav>
         <div style={{marginTop:'auto', opacity:.9, fontSize:12, paddingTop:10, borderTop:'1px solid #13476f'}}>
           <div style={{marginBottom:6}}>
-            {currentUser ? (
-              <>
-                <div style={{fontWeight:700}}>Conectado</div>
-                <div style={{opacity:.9}}>{currentUser.email}</div>
-                <button className="mini-btn" style={{marginTop:8}} onClick={signOut}>Sair</button>
-              </>
-            ) : (
-              <div>Não conectado</div>
-            )}
+            <div style={{fontWeight:700}}>Conectado</div>
+            <div style={{opacity:.9}}>{currentUser.email}</div>
+            <button className="mini-btn" style={{marginTop:8}} onClick={signOut}>Sair</button>
           </div>
           © {new Date().getFullYear()} Saulari
         </div>
@@ -797,29 +844,11 @@ export default function Home() {
 
             {/* Autenticação */}
             <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Autenticação</b>
-              {currentUser ? (
-                <div style={{marginTop:12}}>
-                  <div style={{marginBottom:8}}>Usuário: <strong>{currentUser.email}</strong></div>
-                  <button className="btn-secondary" type="button" onClick={signOut}>Sair</button>
-                </div>
-              ) : (
-                <form onSubmit={(e)=>{ e.preventDefault(); signIn(); }} style={{marginTop:12, display:'grid', gap:12, maxWidth:420}}>
-                  <div>
-                    <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>E-mail</label>
-                    <input value={authEmail} onChange={(e)=>setAuthEmail(e.target.value)} placeholder="email@exemplo.com" />
-                  </div>
-                  <div>
-                    <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>Senha</label>
-                    <input type="password" value={authPassword} onChange={(e)=>setAuthPassword(e.target.value)} placeholder="••••••••" />
-                  </div>
-                  <div style={{display:'flex', gap:8}}>
-                    <button type="submit" className="btn-main" disabled={authLoading}>{authLoading?'Entrando...':'Entrar'}</button>
-                    <button type="button" className="btn-secondary" onClick={signUp} disabled={authLoading}>Cadastrar</button>
-                  </div>
-                  <small style={{color:'#4b6980'}}>Obs.: Cadastro pode exigir confirmação por e-mail, conforme configurações do Supabase.</small>
-                </form>
-              )}
+              <b>Conta</b>
+              <div style={{marginTop:12}}>
+                <div style={{marginBottom:8}}>Usuário: <strong>{currentUser.email}</strong></div>
+                <button className="btn-secondary" type="button" onClick={signOut}>Sair da conta</button>
+              </div>
             </div>
             <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
               <b>Preferências de Notificação</b>
@@ -917,6 +946,8 @@ export default function Home() {
           </div>
         )}
       </main>
+        </>
+      )}
     </div>
   );
 }
