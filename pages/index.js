@@ -277,23 +277,50 @@ export default function Home() {
   async function handleUploadPDF(seguro, file){
     try{
       setUploadingId(seguro.id);
-      const { supabase } = await import('../lib/supabaseClient');
-      const path = `${seguro.id}/${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from('apolices').upload(path, file, { upsert: true, contentType: 'application/pdf' });
-      if(upErr) throw upErr;
       
-      // Com Service Role Key, salvamos o path interno em vez da URL pública
-      const internalPath = `apolices/${path}`;
+      // Converte arquivo para base64
+      const fileContent = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result.split(',')[1]; // Remove o prefixo data:...;base64,
+          resolve(result);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Faz upload via API (servidor)
+      const uploadRes = await fetch('/api/upload-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileContent: fileContent,
+          seguroId: seguro.id
+        })
+      });
+
+      if (!uploadRes.ok) {
+        const errorData = await uploadRes.json();
+        throw new Error(errorData.error || 'Erro no upload');
+      }
+
+      const { path: internalPath } = await uploadRes.json();
       
-      // tenta persistir na API existente
-      await fetch('/api/seguros', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...seguro, apolice_pdf: internalPath }) });
+      // Atualiza o seguro com o path do arquivo
+      await fetch('/api/seguros', { 
+        method:'PUT', 
+        headers:{'Content-Type':'application/json'}, 
+        body: JSON.stringify({ ...seguro, apolice_pdf: internalPath }) 
+      });
+      
       await fetchSeguros(order.column, order.ascending);
       alert('PDF anexado com sucesso.');
+      
       // Log da ação de upload
-      logAction({ action: 'upload_pdf', entity: 'seguro', entity_id: seguro.id, details: { arquivo: file.name, caminho: path } });
+      logAction({ action: 'upload_pdf', entity: 'seguro', entity_id: seguro.id, details: { arquivo: file.name, caminho: internalPath } });
     }catch(e){
       console.error(e);
-      alert('Falha ao anexar PDF. Verifique as credenciais do Supabase e o bucket "apolices".');
+      alert(`Falha ao anexar PDF: ${e.message}`);
     }finally{
       setUploadingId(null);
     }
