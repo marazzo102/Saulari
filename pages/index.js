@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 // Injeta estilos globais uma única vez
 if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-styles')) {
@@ -122,8 +123,59 @@ export default function Home() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsSearch, setLogsSearch] = useState('');
 
+  // Auth (Supabase)
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (mounted) setCurrentUser(data?.user || null);
+      } catch {
+        // ignore
+      }
+    })();
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user || null);
+    });
+    return () => { mounted = false; sub?.subscription?.unsubscribe?.(); };
+  }, []);
+
+  async function signIn() {
+    try {
+      setAuthLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+      if (error) throw error;
+    } catch (e) {
+      alert(e.message || 'Falha ao entrar');
+    } finally { setAuthLoading(false); }
+  }
+
+  async function signUp() {
+    try {
+      setAuthLoading(true);
+      const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+      if (error) throw error;
+      alert('Cadastro realizado. Verifique seu e-mail para confirmar (se aplicável).');
+    } catch (e) {
+      alert(e.message || 'Falha ao cadastrar');
+    } finally { setAuthLoading(false); }
+  }
+
+  async function signOut() {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // ignore
+    }
+  }
+
   // Helper para registrar ações no backend (Supabase)
-  async function logAction({ action, entity = null, entity_id = null, user = null, details = null }) {
+  async function logAction({ action, entity = null, entity_id = null, user = (currentUser?.email || null), details = null }) {
     try {
       await fetch('/api/logs', {
         method: 'POST',
@@ -412,7 +464,20 @@ export default function Home() {
           <NavLink label="Relatórios" icon="📈" value="relatorios" />
           <NavLink label="Configurações" icon="⚙️" value="config" />
         </nav>
-        <div style={{marginTop:'auto', opacity:.8, fontSize:12}}>© {new Date().getFullYear()} Saulari</div>
+        <div style={{marginTop:'auto', opacity:.9, fontSize:12, paddingTop:10, borderTop:'1px solid #13476f'}}>
+          <div style={{marginBottom:6}}>
+            {currentUser ? (
+              <>
+                <div style={{fontWeight:700}}>Conectado</div>
+                <div style={{opacity:.9}}>{currentUser.email}</div>
+                <button className="mini-btn" style={{marginTop:8}} onClick={signOut}>Sair</button>
+              </>
+            ) : (
+              <div>Não conectado</div>
+            )}
+          </div>
+          © {new Date().getFullYear()} Saulari
+        </div>
       </aside>
       <main className="content">
         {section === 'dashboard' && (
@@ -730,6 +795,33 @@ export default function Home() {
           <div className="container-seguros">
             <h1 style={{ color: 'var(--primary)', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>⚙️ Configurações</h1>
             <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Personalize preferências, dados da empresa e integrações.</p>
+
+            {/* Autenticação */}
+            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
+              <b>Autenticação</b>
+              {currentUser ? (
+                <div style={{marginTop:12}}>
+                  <div style={{marginBottom:8}}>Usuário: <strong>{currentUser.email}</strong></div>
+                  <button className="btn-secondary" type="button" onClick={signOut}>Sair</button>
+                </div>
+              ) : (
+                <form onSubmit={(e)=>{ e.preventDefault(); signIn(); }} style={{marginTop:12, display:'grid', gap:12, maxWidth:420}}>
+                  <div>
+                    <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>E-mail</label>
+                    <input value={authEmail} onChange={(e)=>setAuthEmail(e.target.value)} placeholder="email@exemplo.com" />
+                  </div>
+                  <div>
+                    <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>Senha</label>
+                    <input type="password" value={authPassword} onChange={(e)=>setAuthPassword(e.target.value)} placeholder="••••••••" />
+                  </div>
+                  <div style={{display:'flex', gap:8}}>
+                    <button type="submit" className="btn-main" disabled={authLoading}>{authLoading?'Entrando...':'Entrar'}</button>
+                    <button type="button" className="btn-secondary" onClick={signUp} disabled={authLoading}>Cadastrar</button>
+                  </div>
+                  <small style={{color:'#4b6980'}}>Obs.: Cadastro pode exigir confirmação por e-mail, conforme configurações do Supabase.</small>
+                </form>
+              )}
+            </div>
             <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
               <b>Preferências de Notificação</b>
               <form style={{marginTop:16, marginBottom:24, display:'grid', gap:18, maxWidth:420}}>
