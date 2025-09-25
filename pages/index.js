@@ -1101,11 +1101,11 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
         <button className={`ordenacao-btn ${order.column === 'vigencia_fim' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('vigencia_fim', false)}>
           Vencimento ↓
         </button>
-        <button className={`ordenacao-btn ${order.column === 'tipo_seguro' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('tipo_seguro', true)}>
-          Tipo ↑
+        <button className={`ordenacao-btn ${order.column === 'cliente_nome' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('cliente_nome', true)}>
+          Cliente ↑
         </button>
-        <button className={`ordenacao-btn ${order.column === 'tipo_seguro' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('tipo_seguro', false)}>
-          Tipo ↓
+        <button className={`ordenacao-btn ${order.column === 'cliente_nome' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('cliente_nome', false)}>
+          Cliente ↓
         </button>
         <button className={`ordenacao-btn ${order.column === 'seguradora' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('seguradora', true)}>
           Seguradora ↑
@@ -1113,136 +1113,343 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
         <button className={`ordenacao-btn ${order.column === 'seguradora' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('seguradora', false)}>
           Seguradora ↓
         </button>
-        <button className={`ordenacao-btn ${order.column === 'premio' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('premio', true)}>
-          Prêmio ↑
-        </button>
-        <button className={`ordenacao-btn ${order.column === 'premio' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('premio', false)}>
-          Prêmio ↓
-        </button>
         
         <span className="sort-info">
           {order.column} ({order.ascending ? 'crescente' : 'decrescente'})
         </span>
       </div>
 
-  <table className="seguros">
-        <thead>
-          <tr>
-            <th style={{minWidth: 160}}>Cliente</th>
-            <th style={{minWidth: 120}}>CPF</th>
-            <th style={{minWidth: 130}}>Telefone</th>
-            <th style={{minWidth: 140}}>Seguro</th>
-            <th style={{minWidth: 120}}>Seguradora</th>
-            <th style={{minWidth: 100, textAlign: 'right'}}>Prêmio</th>
-            <th style={{minWidth: 100}}>Início</th>
-            <th style={{minWidth: 80}}>Status</th>
-            <th style={{minWidth: 100}}>Fim</th>
-            <th style={{minWidth: 280}}>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {segurosFiltrados.map(s => {
-            const fim = new Date(s.vigencia_fim);
-            const diff = (fim - hoje) / (1000 * 60 * 60 * 24);
-            let classeIndicador = '';
-            if (fim < hoje) classeIndicador = 'vencido'; else if (diff >= 0 && diff <= 30) classeIndicador = 'vencendo';
-            return (
-              <tr key={s.id}>
-                <td style={{fontWeight: 600, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={s.cliente_nome}>
-                  {s.cliente_nome}
-                </td>
-                <td style={{fontFamily: 'monospace', fontSize: 13}}>
-                  {validationUtils.formatCPF(s.cliente_cpf || '')}
-                </td>
-                <td style={{fontFamily: 'monospace', fontSize: 13}}>
-                  {validationUtils.formatPhone(s.cliente_numero || '') || <span style={{color: '#999'}}>-</span>}
-                </td>
-                <td style={{maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={s.tipo_seguro}>
-                  {s.tipo_seguro}
-                </td>
-                <td style={{fontWeight: 500, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={s.seguradora}>
-                  {s.seguradora}
-                </td>
-                <td style={{textAlign: 'right', fontWeight: 600, color: '#1976d2'}}>
-                  R$ {validationUtils.formatCurrency(s.premio?.toString() || '0')}
-                </td>
-                <td style={{fontSize: 13, color: '#666'}}>
-                  {s.vigencia_inicio ? new Date(s.vigencia_inicio).toLocaleDateString('pt-BR') : '-'}
-                </td>
-                <td>
-                  {(() => {
-                    const st = statusDoSeguro(s);
-                    return (
-                      <span className={`status-pill status-${st}`}>
-                        {st === 'ativo' ? '✅ Ativo' : st === 'vencendo' ? '⚠️ Vencendo' : '❌ Vencido'}
-                      </span>
-                    );
-                  })()}
-                </td>
-                <td style={{fontSize: 13, fontWeight: 500}}>
-                  {classeIndicador && <span className={`indicador ${classeIndicador}`}></span>}
-                  {s.vigencia_fim ? new Date(s.vigencia_fim).toLocaleDateString('pt-BR') : '-'}
-                </td>
-                <td>
-                  <div className="table-actions" style={{display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center'}}>
-                    <button className="mini-btn" onClick={() => editarSeguro(s)} style={{fontSize: 11}}>
-                      ✏️ Editar
-                    </button>
-                    <button className="mini-btn danger" onClick={() => excluirSeguro(s.id)} style={{fontSize: 11}}>
-                      🗑️ Excluir
-                    </button>
-                    
-                    {!s.apolice_pdf ? (
-                      <label className="mini-btn" style={{cursor:'pointer', fontSize: 11, background: '#fff3cd', border: '1px solid #ffeaa7'}}>
-                        📎 Anexar
-                        <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
-                      </label>
-                    ) : (
-                      <div style={{display: 'flex', gap: 2}}>
-                        <a
-                          className="mini-btn"
-                          href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&signed=1`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{background:'#e6f5ec', color:'#0a7a3e', border:'1px solid #b9e3c9', fontSize: 11}}
-                          title="Visualizar PDF"
-                        >
-                          👁️ Ver
-                        </a>
-                        <a
-                          className="mini-btn"
-                          href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&download=1`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{background:'#eef2ff', color:'#0f3554', border:'1px solid #c7d2fe', fontSize: 11}}
-                          title="Baixar PDF"
-                        >
-                          📥 Baixar
-                        </a>
+      {/* Tabela com container responsivo */}
+      <div style={{ 
+        overflowX: 'auto', 
+        marginTop: 16,
+        border: '1px solid #e2e8f0',
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+        WebkitOverflowScrolling: 'touch'
+      }}>
+        <table className="seguros" style={{ minWidth: '1400px', margin: 0, borderSpacing: '0' }}>
+          <thead>
+            <tr>
+              <th style={{width: 200, minWidth: 200, padding: '16px 12px', position: 'sticky', left: 0, background: '#1e293b', zIndex: 5}}>Cliente</th>
+              <th style={{width: 140, minWidth: 140, padding: '16px 12px'}}>CPF</th>
+              <th style={{width: 150, minWidth: 150, padding: '16px 12px'}}>Telefone</th>
+              <th style={{width: 160, minWidth: 160, padding: '16px 12px'}}>Seguro</th>
+              <th style={{width: 150, minWidth: 150, padding: '16px 12px'}}>Seguradora</th>
+              <th style={{width: 120, minWidth: 120, textAlign: 'right', padding: '16px 12px'}}>Prêmio</th>
+              <th style={{width: 110, minWidth: 110, padding: '16px 12px'}}>Início</th>
+              <th style={{width: 120, minWidth: 120, padding: '16px 12px'}}>Status</th>
+              <th style={{width: 110, minWidth: 110, padding: '16px 12px'}}>Fim</th>
+              <th style={{width: 220, minWidth: 220, padding: '16px 12px'}}>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {segurosFiltrados.map((s, index) => {
+              const fim = new Date(s.vigencia_fim);
+              const diff = (fim - hoje) / (1000 * 60 * 60 * 24);
+              let classeIndicador = '';
+              if (fim < hoje) classeIndicador = 'vencido'; else if (diff >= 0 && diff <= 30) classeIndicador = 'vencendo';
+              
+              const rowStyle = {
+                borderBottom: '1px solid #f1f5f9',
+                background: index % 2 === 0 ? '#fff' : '#fafbfc'
+              };
+              
+              return (
+                <tr key={s.id} style={rowStyle} onMouseEnter={(e) => e.target.closest('tr').style.background = '#f1f5f9'} onMouseLeave={(e) => e.target.closest('tr').style.background = index % 2 === 0 ? '#fff' : '#fafbfc'}>
+                  <td style={{
+                    fontWeight: 600, 
+                    maxWidth: 200, 
+                    overflow: 'hidden', 
+                    textOverflow: 'ellipsis', 
+                    whiteSpace: 'nowrap',
+                    padding: '14px 12px',
+                    position: 'sticky',
+                    left: 0,
+                    background: 'inherit',
+                    zIndex: 1,
+                    borderRight: '1px solid #e2e8f0'
+                  }} title={s.cliente_nome}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                      <div style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        flexShrink: 0
+                      }}>
+                        {s.cliente_nome.charAt(0).toUpperCase()}
                       </div>
-                    )}
-                    
-                    {uploadingId===s.id && (
-                      <span style={{fontSize:11, color:'#1769aa', fontWeight: 500}}>
-                        ⏳ Enviando...
+                      <span style={{overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                        {s.cliente_nome}
                       </span>
+                    </div>
+                  </td>
+                  <td style={{
+                    fontFamily: 'Monaco, Consolas, monospace', 
+                    fontSize: 13,
+                    padding: '14px 12px',
+                    color: '#475569'
+                  }}>
+                    {validationUtils.formatCPF(s.cliente_cpf || '')}
+                  </td>
+                  <td style={{
+                    fontFamily: 'Monaco, Consolas, monospace', 
+                    fontSize: 13,
+                    padding: '14px 12px',
+                    color: '#475569'
+                  }}>
+                    {validationUtils.formatPhone(s.cliente_numero || '') || <span style={{color: '#94a3b8'}}>—</span>}
+                  </td>
+                  <td style={{
+                    maxWidth: 160, 
+                    overflow: 'hidden', 
+                    textOverflow: 'ellipsis', 
+                    whiteSpace: 'nowrap',
+                    padding: '14px 12px'
+                  }} title={s.tipo_seguro}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+                      <span style={{
+                        display: 'inline-block',
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: '#3b82f6',
+                        flexShrink: 0
+                      }}></span>
+                      {s.tipo_seguro}
+                    </div>
+                  </td>
+                  <td style={{
+                    fontWeight: 600, 
+                    maxWidth: 150, 
+                    overflow: 'hidden', 
+                    textOverflow: 'ellipsis', 
+                    whiteSpace: 'nowrap',
+                    padding: '14px 12px',
+                    color: '#1e40af'
+                  }} title={s.seguradora}>
+                    {s.seguradora}
+                  </td>
+                  <td style={{
+                    textAlign: 'right', 
+                    fontWeight: 700, 
+                    color: '#059669',
+                    fontSize: 14,
+                    padding: '14px 12px'
+                  }}>
+                    R$ {validationUtils.formatCurrency(s.premio?.toString() || '0')}
+                  </td>
+                  <td style={{
+                    fontSize: 13, 
+                    color: '#64748b',
+                    padding: '14px 12px'
+                  }}>
+                    {s.vigencia_inicio ? new Date(s.vigencia_inicio).toLocaleDateString('pt-BR') : '—'}
+                  </td>
+                  <td style={{ padding: '14px 12px' }}>
+                    {(() => {
+                      const st = statusDoSeguro(s);
+                      const statusConfig = {
+                        ativo: { color: '#065f46', bg: 'linear-gradient(135deg, #d1fae5, #a7f3d0)', icon: '✓', border: '#10b981' },
+                        vencendo: { color: '#92400e', bg: 'linear-gradient(135deg, #fef3c7, #fde68a)', icon: '⚠', border: '#f59e0b' },
+                        vencido: { color: '#991b1b', bg: 'linear-gradient(135deg, #fee2e2, #fca5a5)', icon: '✕', border: '#ef4444' }
+                      };
+                      const config = statusConfig[st];
+                      return (
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '6px 12px',
+                          borderRadius: 20,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: config.color,
+                          background: config.bg,
+                          textTransform: 'uppercase',
+                          letterSpacing: 0.5,
+                          border: `1px solid ${config.border}`,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}>
+                          {config.icon} {st}
+                        </span>
+                      );
+                    })()}
+                  </td>
+                  <td style={{
+                    fontSize: 13, 
+                    fontWeight: 600,
+                    padding: '14px 12px',
+                    position: 'relative'
+                  }}>
+                    {classeIndicador && (
+                      <span 
+                        className={`indicador ${classeIndicador}`}
+                        style={{
+                          position: 'absolute',
+                          left: 8,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: 4,
+                          height: 24,
+                          borderRadius: 3,
+                          background: classeIndicador === 'vencido' 
+                            ? 'linear-gradient(180deg, #dc2626, #b91c1c)' 
+                            : 'linear-gradient(180deg, #f59e0b, #d97706)',
+                          boxShadow: classeIndicador === 'vencido' 
+                            ? '0 0 8px rgba(220, 38, 38, 0.5)' 
+                            : '0 0 8px rgba(245, 158, 11, 0.5)'
+                        }}
+                      ></span>
                     )}
-                  </div>
+                    <span style={{ paddingLeft: classeIndicador ? 16 : 0 }}>
+                      {s.vigencia_fim ? new Date(s.vigencia_fim).toLocaleDateString('pt-BR') : '—'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '14px 12px' }}>
+                    <div style={{
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: 6, 
+                      alignItems: 'center',
+                      justifyContent: 'flex-start'
+                    }}>
+                      <button 
+                        className="mini-btn" 
+                        onClick={() => editarSeguro(s)} 
+                        style={{
+                          fontSize: 11,
+                          padding: '6px 10px',
+                          background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+                          color: '#1d4ed8',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: 6,
+                          fontWeight: 600
+                        }}
+                        title="Editar seguro"
+                      >
+                        ✏️ Editar
+                      </button>
+                      
+                      <button 
+                        className="mini-btn danger" 
+                        onClick={() => excluirSeguro(s.id)} 
+                        style={{
+                          fontSize: 11,
+                          padding: '6px 10px',
+                          background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
+                          color: '#dc2626',
+                          border: '1px solid #fecaca',
+                          borderRadius: 6,
+                          fontWeight: 600
+                        }}
+                        title="Excluir seguro"
+                      >
+                        🗑️ Excluir
+                      </button>
+                      
+                      {!s.apolice_pdf ? (
+                        <label 
+                          className="mini-btn" 
+                          style={{
+                            cursor:'pointer', 
+                            fontSize: 11,
+                            padding: '6px 10px',
+                            background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', 
+                            border: '1px solid #fed7aa',
+                            color: '#c2410c',
+                            borderRadius: 6,
+                            fontWeight: 600
+                          }}
+                          title="Anexar PDF da apólice"
+                        >
+                          📎 Anexar
+                          <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
+                        </label>
+                      ) : (
+                        <div style={{display: 'flex', gap: 4}}>
+                          <a
+                            className="mini-btn"
+                            href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&signed=1`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              background:'linear-gradient(135deg, #f0fdf4, #dcfce7)', 
+                              color:'#166534', 
+                              border:'1px solid #bbf7d0', 
+                              fontSize: 11,
+                              padding: '6px 10px',
+                              borderRadius: 6,
+                              fontWeight: 600
+                            }}
+                            title="Visualizar PDF"
+                          >
+                            👁️ Ver
+                          </a>
+                          <a
+                            className="mini-btn"
+                            href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&download=1`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              background:'linear-gradient(135deg, #f8fafc, #f1f5f9)', 
+                              color:'#334155', 
+                              border:'1px solid #cbd5e1', 
+                              fontSize: 11,
+                              padding: '6px 10px',
+                              borderRadius: 6,
+                              fontWeight: 600
+                            }}
+                            title="Baixar PDF"
+                          >
+                            📥 Baixar
+                          </a>
+                        </div>
+                      )}
+                      
+                      {uploadingId===s.id && (
+                        <span style={{
+                          fontSize: 11, 
+                          color:'#059669', 
+                          fontWeight: 600,
+                          background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
+                          padding: '4px 8px',
+                          borderRadius: 4,
+                          border: '1px solid #a7f3d0'
+                        }}>
+                          ⏳ Enviando...
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {segurosFiltrados.length === 0 && !loading && (
+              <tr>
+                <td colSpan={10} style={{ 
+                  textAlign: 'center', 
+                  padding: 80, 
+                  color: '#64748b',
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+                }}>
+                  <div style={{fontSize: 48, marginBottom: 16, opacity: 0.3}}>📋</div>
+                  <div style={{fontSize: 18, fontWeight: 600, marginBottom: 8, color: '#374151'}}>Nenhum seguro encontrado</div>
+                  <small style={{opacity: 0.7, fontSize: 14}}>Experimente alterar os filtros ou termo de busca</small>
                 </td>
               </tr>
-            );
-          })}
-          {segurosFiltrados.length === 0 && !loading && (
-            <tr>
-              <td colSpan={10} style={{ textAlign: 'center', padding: 40, color: '#4b6980', fontSize: 16 }}>
-                <div style={{opacity: 0.7}}>📋</div>
-                <div style={{marginTop: 8}}>Nenhum seguro encontrado</div>
-                <small style={{opacity: 0.8}}>Experimente alterar os filtros ou termo de busca</small>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
 
   {loading && <div className="loading">Carregando...</div>}
 
