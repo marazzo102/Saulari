@@ -1,6 +1,69 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
+// Utilitários de validação e formatação
+const validationUtils = {
+  // Validação de CPF
+  isValidCPF(cpf) {
+    cpf = cpf.replace(/[^\d]/g, '');
+    if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+    
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += parseInt(cpf[i]) * (10 - i);
+    let digit1 = (sum * 10) % 11;
+    if (digit1 === 10) digit1 = 0;
+    if (digit1 !== parseInt(cpf[9])) return false;
+    
+    sum = 0;
+    for (let i = 0; i < 10; i++) sum += parseInt(cpf[i]) * (11 - i);
+    let digit2 = (sum * 10) % 11;
+    if (digit2 === 10) digit2 = 0;
+    if (digit2 !== parseInt(cpf[10])) return false;
+    
+    return true;
+  },
+
+  // Formatação de CPF
+  formatCPF(value) {
+    const digits = value.replace(/[^\d]/g, '');
+    return digits
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  },
+
+  // Formatação de telefone
+  formatPhone(value) {
+    const digits = value.replace(/[^\d]/g, '');
+    if (digits.length <= 10) {
+      return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+    } else {
+      return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+    }
+  },
+
+  // Formatação de valor monetário
+  formatCurrency(value) {
+    const number = parseFloat(value.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2
+    }).format(number).replace('R$', '').trim();
+  },
+
+  // Validação de email
+  isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  },
+
+  // Validação de data
+  isValidDate(dateString) {
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date);
+  }
+};
+
 // Injeta estilos globais uma única vez
 if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-styles')) {
   const style = document.createElement('style');
@@ -181,16 +244,18 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   .kpi h3 { margin:0; font-size:12px; color:#4b6980; text-transform:uppercase; letter-spacing:.5px; }
   .kpi .value { margin-top:6px; font-size:22px; font-weight:800; color:#0f3554; }
   .kpi .sub { font-size:12px; color:#6a8aa2; margin-top:2px; }
-  /* Status pill */
-  .status-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
-  .status-ativo { background:#e6f5ec; color:#0a7a3e; border:1px solid #b9e3c9; }
-  .status-vencendo { background:#fff7d6; color:#7a5b00; border:1px solid #ead37b; }
-  .status-vencido { background:#ffe6e6; color:#8b1b1b; border:1px solid #ef9a9a; }
-  `;
+    /* Status pill */
+    .status-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+    .status-ativo { background:#e6f5ec; color:#0a7a3e; border:1px solid #b9e3c9; }
+    .status-vencendo { background:#fff7d6; color:#7a5b00; border:1px solid #ead37b; }
+    .status-vencido { background:#ffe6e6; color:#8b1b1b; border:1px solid #ef9a9a; }
+    /* Validação de formulário */
+    .form-error { color: #e53935; font-size: 12px; margin-top: 4px; display: block; }
+    .input-error { border-color: #e53935 !important; box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.1); }
+    .input-error:focus { border-color: #e53935 !important; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2); }
+    `;
   document.head.appendChild(style);
-}
-
-export default function Home() {
+}export default function Home() {
 
   const [order, setOrder] = useState({ column: 'vigencia_fim', ascending: true });
   const [theme, setTheme] = useState(typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'light') : 'light');
@@ -215,6 +280,10 @@ export default function Home() {
     vigencia_inicio: '',
     vigencia_fim: '',
   });
+
+  // Estados para controle de validação
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
@@ -271,8 +340,80 @@ export default function Home() {
     }
   }
 
-  // Helper para registrar ações no backend (Supabase)
   async function logAction({ action, entity = null, entity_id = null, user = (currentUser?.email || null), details = null }) {
+    try {
+      await fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, entity, entity_id, user, details }),
+      });
+    } catch (e) {
+      console.warn('Failed to log action:', e);
+    }
+  }
+
+  // Função para limpar e validar o formulário
+  function validateForm(data) {
+    const errors = {};
+    
+    // Validações obrigatórias
+    if (!data.cliente_nome.trim()) errors.cliente_nome = 'Nome é obrigatório';
+    if (!data.cliente_cpf.trim()) errors.cliente_cpf = 'CPF é obrigatório';
+    else if (!validationUtils.isValidCPF(data.cliente_cpf)) errors.cliente_cpf = 'CPF inválido';
+    
+    if (!data.tipo_seguro.trim()) errors.tipo_seguro = 'Tipo de seguro é obrigatório';
+    if (!data.seguradora.trim()) errors.seguradora = 'Seguradora é obrigatória';
+    
+    // Validações de formato
+    if (data.cliente_numero && data.cliente_numero.replace(/[^\d]/g, '').length < 10) {
+      errors.cliente_numero = 'Telefone deve ter pelo menos 10 dígitos';
+    }
+    
+    if (data.premio && isNaN(parseFloat(data.premio.replace(/[^\d,.-]/g, '').replace(',', '.')))) {
+      errors.premio = 'Prêmio deve ser um valor numérico válido';
+    }
+    
+    // Validações de data
+    if (data.vigencia_inicio && !validationUtils.isValidDate(data.vigencia_inicio)) {
+      errors.vigencia_inicio = 'Data de início inválida';
+    }
+    if (data.vigencia_fim && !validationUtils.isValidDate(data.vigencia_fim)) {
+      errors.vigencia_fim = 'Data de fim inválida';
+    }
+    
+    // Validação lógica de datas
+    if (data.vigencia_inicio && data.vigencia_fim) {
+      const inicio = new Date(data.vigencia_inicio);
+      const fim = new Date(data.vigencia_fim);
+      if (fim <= inicio) {
+        errors.vigencia_fim = 'Data de fim deve ser posterior à data de início';
+      }
+    }
+    
+    return errors;
+  }
+
+  // Handlers para formatação automática
+  function handleCPFChange(value) {
+    const formatted = validationUtils.formatCPF(value);
+    setFormData(prev => ({ ...prev, cliente_cpf: formatted }));
+    
+    // Remove erro quando CPF fica válido
+    if (validationUtils.isValidCPF(formatted)) {
+      setFormErrors(prev => ({ ...prev, cliente_cpf: null }));
+    }
+  }
+
+  function handlePhoneChange(value) {
+    const formatted = validationUtils.formatPhone(value);
+    setFormData(prev => ({ ...prev, cliente_numero: formatted }));
+  }
+
+  function handleCurrencyChange(value) {
+    // Permite apenas números, vírgula e ponto
+    const cleanValue = value.replace(/[^\d,.-]/g, '');
+    setFormData(prev => ({ ...prev, premio: cleanValue }));
+  }
     try {
       await fetch('/api/logs', {
         method: 'POST',
@@ -336,7 +477,7 @@ export default function Home() {
   }
 
   const segurosFiltrados = seguros.filter(s =>
-    (s.cliente_nome.toLowerCase().includes(search.toLowerCase()) || s.cliente_cpf.includes(search)) &&
+    (s.cliente_nome.toLowerCase().includes(search.toLowerCase()) || s.cliente_cpf.includes(search) || (s.cliente_numero && s.cliente_numero.includes(search))) &&
     (statusFilter === 'todos' || (statusFilter === 'vencidos' && new Date(s.vigencia_fim) < hoje) || (statusFilter === 'vencendo' && (()=>{const fim=new Date(s.vigencia_fim);const diff=(fim-hoje)/(1000*60*60*24);return diff>=0 && diff<=30;})())) &&
     (anexoFilter === 'todos' || (anexoFilter === 'com' && !!s.apolice_pdf) || (anexoFilter === 'sem' && !s.apolice_pdf))
   );
@@ -429,20 +570,43 @@ export default function Home() {
 
   async function salvarSeguro(e) {
     e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Validar formulário
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setIsSubmitting(false);
+      // Mostrar primeiro erro encontrado
+      const firstError = Object.values(errors)[0];
+      alert(`Erro de validação: ${firstError}`);
+      return;
+    }
+    
+    setFormErrors({}); // Limpar erros
+    
     try {
+      // Preparar dados com formatação correta
+      const dataToSave = {
+        ...formData,
+        cliente_cpf: formData.cliente_cpf.replace(/[^\d]/g, ''), // Salvar CPF só com números
+        premio: parseFloat(formData.premio.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0
+      };
+      
       let res;
       if (formData.id) {
         res = await fetch('/api/seguros', {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSave)
         });
       } else {
-        const payload = { ...formData };
+        const payload = { ...dataToSave };
         delete payload.id;
         res = await fetch('/api/seguros', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
         });
       }
       if (!res.ok) throw new Error('Erro ao salvar');
+      
       // Log de criação/atualização
       if (formData.id) {
         logAction({ action: 'update', entity: 'seguro', entity_id: formData.id, details: { campos: { ...formData } } });
@@ -452,7 +616,13 @@ export default function Home() {
       resetForm();
       setFormVisible(false);
       fetchSeguros(order.column, order.ascending);
-    } catch (e) { console.error(e); }
+      alert(formData.id ? 'Seguro atualizado com sucesso!' : 'Seguro cadastrado com sucesso!');
+    } catch (e) { 
+      console.error(e); 
+      alert('Erro ao salvar seguro. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function editarSeguro(seguro) {
@@ -483,6 +653,8 @@ export default function Home() {
       vigencia_inicio: '',
       vigencia_fim: '',
     });
+    setFormErrors({}); // Limpar erros de validação
+    setIsSubmitting(false);
   }
 
   const [section, setSection] = useState('dashboard');
@@ -762,7 +934,7 @@ export default function Home() {
         )}
       </div>
 
-      <input className="search-input" placeholder="Buscar por nome ou CPF" value={search} onChange={e => setSearch(e.target.value)} />
+      <input className="search-input" placeholder="Buscar por nome, CPF ou telefone" value={search} onChange={e => setSearch(e.target.value)} />
 
       {formVisible && (
         <form className="form-wrapper" onSubmit={salvarSeguro}>
@@ -771,40 +943,98 @@ export default function Home() {
           </h2>
           <div className="form-grid">
             <div>
-              <label>Nome do Cliente</label>
-              <input value={formData.cliente_nome} required onChange={e => setFormData({ ...formData, cliente_nome: e.target.value })} />
+              <label>Nome do Cliente *</label>
+              <input 
+                value={formData.cliente_nome} 
+                required 
+                onChange={e => setFormData({ ...formData, cliente_nome: e.target.value })}
+                style={formErrors.cliente_nome ? { borderColor: '#e53935' } : {}}
+              />
+              {formErrors.cliente_nome && <small style={{color: '#e53935', fontSize: 12}}>{formErrors.cliente_nome}</small>}
             </div>
             <div>
-              <label>CPF</label>
-              <input value={formData.cliente_cpf} required onChange={e => setFormData({ ...formData, cliente_cpf: e.target.value })} />
+              <label>CPF *</label>
+              <input 
+                value={formData.cliente_cpf} 
+                required 
+                placeholder="000.000.000-00"
+                maxLength={14}
+                onChange={e => handleCPFChange(e.target.value)}
+                style={formErrors.cliente_cpf ? { borderColor: '#e53935' } : {}}
+              />
+              {formErrors.cliente_cpf && <small style={{color: '#e53935', fontSize: 12}}>{formErrors.cliente_cpf}</small>}
             </div>
             <div>
               <label>Telefone</label>
-              <input value={formData.cliente_numero} onChange={e => setFormData({ ...formData, cliente_numero: e.target.value })} />
+              <input 
+                value={formData.cliente_numero} 
+                placeholder="(11) 99999-9999"
+                maxLength={15}
+                onChange={e => handlePhoneChange(e.target.value)}
+                style={formErrors.cliente_numero ? { borderColor: '#e53935' } : {}}
+              />
+              {formErrors.cliente_numero && <small style={{color: '#e53935', fontSize: 12}}>{formErrors.cliente_numero}</small>}
             </div>
             <div>
-              <label>Tipo de Seguro</label>
-              <input value={formData.tipo_seguro} required onChange={e => setFormData({ ...formData, tipo_seguro: e.target.value })} />
+              <label>Tipo de Seguro *</label>
+              <input 
+                value={formData.tipo_seguro} 
+                required 
+                onChange={e => setFormData({ ...formData, tipo_seguro: e.target.value })}
+                style={formErrors.tipo_seguro ? { borderColor: '#e53935' } : {}}
+              />
+              {formErrors.tipo_seguro && <small style={{color: '#e53935', fontSize: 12}}>{formErrors.tipo_seguro}</small>}
             </div>
             <div>
-              <label>Seguradora</label>
-              <input value={formData.seguradora} required onChange={e => setFormData({ ...formData, seguradora: e.target.value })} />
+              <label>Seguradora *</label>
+              <input 
+                value={formData.seguradora} 
+                required 
+                onChange={e => setFormData({ ...formData, seguradora: e.target.value })}
+                style={formErrors.seguradora ? { borderColor: '#e53935' } : {}}
+              />
+              {formErrors.seguradora && <small style={{color: '#e53935', fontSize: 12}}>{formErrors.seguradora}</small>}
             </div>
             <div>
               <label>Prêmio (R$)</label>
-              <input type="number" value={formData.premio} onChange={e => setFormData({ ...formData, premio: e.target.value })} />
+              <input 
+                value={formData.premio} 
+                placeholder="1500,00"
+                onChange={e => handleCurrencyChange(e.target.value)}
+                style={formErrors.premio ? { borderColor: '#e53935' } : {}}
+              />
+              {formErrors.premio && <small style={{color: '#e53935', fontSize: 12}}>{formErrors.premio}</small>}
             </div>
             <div>
               <label>Vigência Início</label>
-              <input type="date" value={formData.vigencia_inicio} onChange={e => setFormData({ ...formData, vigencia_inicio: e.target.value })} />
+              <input 
+                type="date" 
+                value={formData.vigencia_inicio} 
+                onChange={e => setFormData({ ...formData, vigencia_inicio: e.target.value })}
+                style={formErrors.vigencia_inicio ? { borderColor: '#e53935' } : {}}
+              />
+              {formErrors.vigencia_inicio && <small style={{color: '#e53935', fontSize: 12}}>{formErrors.vigencia_inicio}</small>}
             </div>
             <div>
               <label>Vigência Fim</label>
-              <input type="date" value={formData.vigencia_fim} onChange={e => setFormData({ ...formData, vigencia_fim: e.target.value })} />
+              <input 
+                type="date" 
+                value={formData.vigencia_fim} 
+                onChange={e => setFormData({ ...formData, vigencia_fim: e.target.value })}
+                style={formErrors.vigencia_fim ? { borderColor: '#e53935' } : {}}
+              />
+              {formErrors.vigencia_fim && <small style={{color: '#e53935', fontSize: 12}}>{formErrors.vigencia_fim}</small>}
             </div>
           </div>
           <div className="actions-row">
-            <button type="submit" className="btn-main" style={{ marginBottom: 0 }}>{formData.id ? 'Salvar alterações' : 'Cadastrar'}</button>
+            <button 
+              type="submit" 
+              className="btn-main" 
+              style={{ marginBottom: 0 }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Salvando...' : (formData.id ? 'Salvar alterações' : 'Cadastrar')}
+            </button>
             <button type="button" className="btn-secondary" onClick={resetForm}>Limpar</button>
             {formData.id && (
               <button type="button" className="btn-secondary" onClick={() => { resetForm(); setFormVisible(false); }}>Cancelar edição</button>
@@ -925,6 +1155,7 @@ export default function Home() {
           <tr>
             <th>Cliente</th>
             <th>CPF</th>
+            <th>Telefone</th>
             <th>Seguro</th>
             <th>Seguradora</th>
             <th>Prêmio</th>
@@ -943,10 +1174,11 @@ export default function Home() {
             return (
               <tr key={s.id}>
                 <td>{s.cliente_nome}</td>
-                <td>{s.cliente_cpf}</td>
+                <td>{validationUtils.formatCPF(s.cliente_cpf || '')}</td>
+                <td>{validationUtils.formatPhone(s.cliente_numero || '') || '-'}</td>
                 <td>{s.tipo_seguro}</td>
                 <td>{s.seguradora}</td>
-                <td>R$ {s.premio}</td>
+                <td>R$ {validationUtils.formatCurrency(s.premio?.toString() || '0')}</td>
                 <td>{s.vigencia_inicio}</td>
                 <td>
                   {(() => {
