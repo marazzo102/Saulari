@@ -414,16 +414,6 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     const cleanValue = value.replace(/[^\d,.-]/g, '');
     setFormData(prev => ({ ...prev, premio: cleanValue }));
   }
-    try {
-      await fetch('/api/logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, entity, entity_id, user, details }),
-      });
-    } catch (e) {
-      console.warn('Falha ao registrar log:', e);
-    }
-  }
 
   const fetchSeguros = async (column = order.column, ascending = order.ascending) => {
     setLoading(true);
