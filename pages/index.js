@@ -23,8 +23,23 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     .btn-main:hover { filter:brightness(1.05); transform:translateY(-2px); box-shadow:0 6px 18px #1976d255; }
     .btn-secondary { background:#e6eef7; color:#1769aa; border:none; border-radius:8px; padding:9px 18px; font-weight:500; cursor:pointer; transition:.25s; }
     .btn-secondary:hover { background:#d2e4f7; }
-    .search-input { width:100%; padding:11px 14px; border:1.5px solid #b7c9da; border-radius:10px; font-size:15px; background:#fafdff; outline:none; transition:.25s; }
-    .search-input:focus { border-color:#1976d2; box-shadow:0 0 0 3px #4fc3f733; }
+    .search-input { 
+      width: 100%; 
+      padding: 12px 16px 12px 44px; 
+      border: 1px solid #dce7f0; 
+      border-radius: 10px; 
+      font-size: 14px; 
+      background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236a8aa2'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat 16px center;
+      background-size: 20px 20px;
+      transition: all 0.2s ease;
+      margin: 0 0 4px 0;
+    }
+    .search-input:focus { 
+      outline: none; 
+      border-color: #1976d2; 
+      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+      background-color: #fbfcfe;
+    }
   .alerts-wrapper { margin:14px 0 2px; display:flex; flex-direction:column; gap:8px; position:relative; }
   .alerts-wrapper.sticky { position:sticky; top:0; z-index:30; padding-top:4px; }
   .alert { border-radius:12px; padding:12px 16px; font-weight:500; display:flex; gap:10px; align-items:center; box-shadow:0 3px 14px #0d27440f,0 1px 2px #0d274415; animation:fadeIn .5s; line-height:1.25; backdrop-filter:blur(6px); }
@@ -45,9 +60,52 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     .form-grid input:focus { border-color:#1976d2; box-shadow:0 0 0 3px #4fc3f722; outline:none; }
     .actions-row { display:flex; gap:12px; margin-top:14px; }
     .ordenacao-bar { display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 2px; }
-    .ordenacao-btn { background:#e6eef7; color:#1769aa; border:none; padding:7px 14px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; transition:.25s; }
-    .ordenacao-btn.active { background:#1976d2; color:#fff; box-shadow:0 3px 10px #1976d244; }
-    .ordenacao-btn:not(.active):hover { background:#d2e4f7; }
+    /* Ordenação refinada */
+    .sort-controls { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      margin: 12px 0 8px; 
+      padding: 12px 16px; 
+      background: #ffffff; 
+      border: 1px solid #e1e8ed; 
+      border-radius: 8px; 
+      box-shadow: 0 1px 4px rgba(15, 53, 84, 0.04);
+    }
+    .sort-label { 
+      font-size: 12px; 
+      font-weight: 600; 
+      color: #4b6980; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+      margin-right: 8px;
+    }
+    .ordenacao-btn { 
+      padding: 6px 12px; 
+      border-radius: 6px; 
+      background: #f8fafc; 
+      color: #4b6980; 
+      border: 1px solid #e1e8ed; 
+      font-size: 12px; 
+      font-weight: 500; 
+      cursor: pointer; 
+      transition: all 0.2s ease;
+    }
+    .ordenacao-btn.active { 
+      background: #1976d2; 
+      color: #ffffff; 
+      border-color: #1976d2; 
+    }
+    .ordenacao-btn:not(.active):hover { 
+      background: #f0f6fc; 
+      border-color: #b8d4f0; 
+    }
+    .sort-info { 
+      font-size: 11px; 
+      color: #6a8aa2; 
+      font-weight: 500; 
+      margin-left: auto;
+    }
     .order-info { font-size:13px; font-style:italic; color:#1769aa; margin-top:4px; }
     table.seguros { width:100%; border-collapse:separate; border-spacing:0 6px; margin-top:14px; }
     table.seguros thead th { text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.7px; padding:10px 12px; background:#e6eef7; color:#1769aa; font-weight:700; }
@@ -67,11 +125,49 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     .mini-btn.danger { background:#ffe5e5; color:#b42222; }
     .mini-btn.danger:hover { background:#d63030; color:#fff; }
     .loading { color:#1769aa; font-weight:500; margin-top:18px; }
-    /* --- Filtros rápidos e toasts adicionados --- */
-    .filters-bar { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 4px; align-items:center; }
-    .chip-filter { padding:6px 14px; border-radius:22px; background:#e6eef7; color:#1769aa; font-size:12px; font-weight:600; cursor:pointer; border:none; transition:.25s; }
-    .chip-filter.active { background:#1976d2; color:#fff; box-shadow:0 3px 10px #1976d23a; }
-    .chip-filter:not(.active):hover { background:#d2e4f7; }
+    /* --- Filtros refinados --- */
+    .filters-section { 
+      background: linear-gradient(180deg, #fbfcfe, #f8fafc); 
+      border: 1px solid #e1e8ed; 
+      border-radius: 12px; 
+      padding: 16px 20px; 
+      margin: 16px 0; 
+      box-shadow: 0 2px 8px rgba(15, 53, 84, 0.06);
+    }
+    .filters-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .filter-group { display: flex; align-items: center; gap: 8px; }
+    .filter-label { 
+      font-size: 13px; 
+      font-weight: 600; 
+      color: #4b6980; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+      margin-right: 4px;
+    }
+    .chip-filter { 
+      padding: 7px 16px; 
+      border-radius: 20px; 
+      background: #ffffff; 
+      color: #4b6980; 
+      font-size: 13px; 
+      font-weight: 500; 
+      cursor: pointer; 
+      border: 1px solid #dce7f0; 
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .chip-filter.active { 
+      background: #1976d2; 
+      color: #ffffff; 
+      border-color: #1976d2; 
+      box-shadow: 0 2px 6px rgba(25, 118, 210, 0.25);
+    }
+    .chip-filter:not(.active):hover { 
+      background: #f0f6fc; 
+      border-color: #b8d4f0; 
+      transform: translateY(-1px);
+    }
+    .filter-divider { width: 1px; height: 20px; background: #dce7f0; margin: 0 4px; }
     .toast-container { position:fixed; right:24px; bottom:24px; display:flex; flex-direction:column; gap:10px; max-width:300px; z-index:500; }
     .toast { border-radius:14px; padding:14px 16px 14px 14px; font-size:14px; display:flex; gap:10px; align-items:flex-start; box-shadow:0 6px 28px #0d274433; background:#fff; border:1px solid #e2e9f0; animation:slideIn .5s ease; }
     @keyframes slideIn { from {opacity:0; transform:translateY(16px) scale(.96);} to {opacity:1; transform:translateY(0) scale(1);} }
@@ -650,7 +746,7 @@ export default function Home() {
         )}
       </div>
 
-      <input className="search-input" placeholder="🔍 Buscar por nome ou CPF" value={search} onChange={e => setSearch(e.target.value)} />
+      <input className="search-input" placeholder="Buscar por nome ou CPF" value={search} onChange={e => setSearch(e.target.value)} />
 
       {formVisible && (
         <form className="form-wrapper" onSubmit={salvarSeguro}>
@@ -743,27 +839,70 @@ export default function Home() {
         </div>
       )}
 
-      <div className="filters-bar">
-        <button className={`chip-filter ${statusFilter==='todos'?'active':''}`} onClick={()=>setStatusFilter('todos')}>Todos ({seguros.length})</button>
-        <button className={`chip-filter ${statusFilter==='vencidos'?'active':''}`} onClick={()=>setStatusFilter('vencidos')}>Vencidos ({vencidos.length})</button>
-        <button className={`chip-filter ${statusFilter==='vencendo'?'active':''}`} onClick={()=>setStatusFilter('vencendo')}>Em 30 dias ({vencendo.length})</button>
-        <span style={{margin:'0 6px', color:'#4b6980', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:.5}}>Anexos</span>
-        <button className={`chip-filter ${anexoFilter==='todos'?'active':''}`} onClick={()=>setAnexoFilter('todos')}>Todos</button>
-        <button className={`chip-filter ${anexoFilter==='com'?'active':''}`} onClick={()=>setAnexoFilter('com')}>Com PDF ({seguros.filter(s=>!!s.apolice_pdf).length})</button>
-        <button className={`chip-filter ${anexoFilter==='sem'?'active':''}`} onClick={()=>setAnexoFilter('sem')}>Sem PDF ({seguros.filter(s=>!s.apolice_pdf).length})</button>
+      {/* Filtros profissionais */}
+      <div className="filters-section">
+        <div className="filters-row">
+          <div className="filter-group">
+            <span className="filter-label">Status</span>
+            <button className={`chip-filter ${statusFilter==='todos'?'active':''}`} onClick={()=>setStatusFilter('todos')}>
+              Todos ({seguros.length})
+            </button>
+            <button className={`chip-filter ${statusFilter==='vencidos'?'active':''}`} onClick={()=>setStatusFilter('vencidos')}>
+              Vencidos ({vencidos.length})
+            </button>
+            <button className={`chip-filter ${statusFilter==='vencendo'?'active':''}`} onClick={()=>setStatusFilter('vencendo')}>
+              Em 30 dias ({vencendo.length})
+            </button>
+          </div>
+          
+          <div className="filter-divider"></div>
+          
+          <div className="filter-group">
+            <span className="filter-label">Anexos</span>
+            <button className={`chip-filter ${anexoFilter==='todos'?'active':''}`} onClick={()=>setAnexoFilter('todos')}>
+              Todos
+            </button>
+            <button className={`chip-filter ${anexoFilter==='com'?'active':''}`} onClick={()=>setAnexoFilter('com')}>
+              Com PDF ({seguros.filter(s=>!!s.apolice_pdf).length})
+            </button>
+            <button className={`chip-filter ${anexoFilter==='sem'?'active':''}`} onClick={()=>setAnexoFilter('sem')}>
+              Sem PDF ({seguros.filter(s=>!s.apolice_pdf).length})
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="ordenacao-bar">
-        <button className={`ordenacao-btn ${order.column === 'vigencia_fim' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('vigencia_fim', true)}>Vencimento ↑</button>
-        <button className={`ordenacao-btn ${order.column === 'vigencia_fim' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('vigencia_fim', false)}>Vencimento ↓</button>
-        <button className={`ordenacao-btn ${order.column === 'tipo_seguro' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('tipo_seguro', true)}>Tipo ↑</button>
-        <button className={`ordenacao-btn ${order.column === 'tipo_seguro' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('tipo_seguro', false)}>Tipo ↓</button>
-        <button className={`ordenacao-btn ${order.column === 'seguradora' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('seguradora', true)}>Seguradora ↑</button>
-        <button className={`ordenacao-btn ${order.column === 'seguradora' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('seguradora', false)}>Seguradora ↓</button>
-        <button className={`ordenacao-btn ${order.column === 'premio' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('premio', true)}>Prêmio ↑</button>
-        <button className={`ordenacao-btn ${order.column === 'premio' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('premio', false)}>Prêmio ↓</button>
+      <div className="sort-controls">
+        <span className="sort-label">Ordenar por</span>
+        <button className={`ordenacao-btn ${order.column === 'vigencia_fim' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('vigencia_fim', true)}>
+          Vencimento ↑
+        </button>
+        <button className={`ordenacao-btn ${order.column === 'vigencia_fim' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('vigencia_fim', false)}>
+          Vencimento ↓
+        </button>
+        <button className={`ordenacao-btn ${order.column === 'tipo_seguro' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('tipo_seguro', true)}>
+          Tipo ↑
+        </button>
+        <button className={`ordenacao-btn ${order.column === 'tipo_seguro' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('tipo_seguro', false)}>
+          Tipo ↓
+        </button>
+        <button className={`ordenacao-btn ${order.column === 'seguradora' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('seguradora', true)}>
+          Seguradora ↑
+        </button>
+        <button className={`ordenacao-btn ${order.column === 'seguradora' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('seguradora', false)}>
+          Seguradora ↓
+        </button>
+        <button className={`ordenacao-btn ${order.column === 'premio' && order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('premio', true)}>
+          Prêmio ↑
+        </button>
+        <button className={`ordenacao-btn ${order.column === 'premio' && !order.ascending ? 'active' : ''}`} onClick={() => fetchSeguros('premio', false)}>
+          Prêmio ↓
+        </button>
+        
+        <span className="sort-info">
+          {order.column} ({order.ascending ? 'crescente' : 'decrescente'})
+        </span>
       </div>
-      <div className="order-info">Ordenado por <strong>{order.column}</strong> ({order.ascending ? 'crescente' : 'decrescente'})</div>
 
   <table className="seguros">
         <thead>
