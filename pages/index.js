@@ -587,8 +587,24 @@ export default function Home() {
     <div className="app-shell">
       {!currentUser ? (
         // Tela de Login (quando não autenticado)
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-          <div style={{ background: '#fff', borderRadius: 20, padding: 40, boxShadow: '0 4px 28px #1769aa22', maxWidth: 400, width: '100%' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          minHeight: '100vh', 
+          width: '100%',
+          background: 'var(--bg)',
+          padding: '20px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{ 
+            background: '#fff', 
+            borderRadius: 20, 
+            padding: 40, 
+            boxShadow: '0 4px 28px #1769aa22', 
+            maxWidth: 400, 
+            width: '100%'
+          }}>
             <div style={{ textAlign: 'center', marginBottom: 30 }}>
               <div className="brand" style={{ justifyContent: 'center', fontSize: 24, marginBottom: 10 }}>
                 <div className="logo" /> <span>Saulari Seguros</span>
