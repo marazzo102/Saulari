@@ -729,194 +729,6 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     logAction({ action: 'export_csv', entity: 'logs', details: { quantidade: visible.length } });
   }
 
-  // ===== INTEGRAÇÕES AUTOMATIZADAS =====
-
-  // Validação automática de CPF com consulta online (se disponível)
-  async function validarCPFOnline(cpf) {
-    try {
-      // Validação básica de formato primeiro
-      if (!validarCPF(cpf)) return { valido: false, motivo: 'Formato inválido' };
-
-      // Tentativa de consulta online (usando serviço público gratuito)
-      const response = await fetch(`https://api.cpfcnpj.com.br/${cpf}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        logAction({ action: 'validacao_cpf_online', entity: 'cliente', details: { cpf: cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.**$4'), status: 'success' } });
-        return { valido: data.valid || true, dados: data };
-      } else {
-        // Se a API não estiver disponível, retorna apenas validação local
-        logAction({ action: 'validacao_cpf_local', entity: 'cliente', details: { motivo: 'API indisponível' } });
-        return { valido: true, dados: null, fonte: 'local' };
-      }
-    } catch (error) {
-      console.log('Consulta CPF online falhou, usando validação local:', error.message);
-      logAction({ action: 'validacao_cpf_local', entity: 'cliente', details: { motivo: error.message } });
-      return { valido: true, dados: null, fonte: 'local' };
-    }
-  }
-
-  // Notificação automática via WhatsApp (configuração interna)
-  async function notificarWhatsApp(numero, evento, dados) {
-    const mensagensTemplate = {
-      nova_apolice: `🚗 *Nova Apólice Criada*\n\nApólice: ${dados.numero}\nCliente: ${dados.cliente}\nVeículo: ${dados.veiculo}\n\nSistema Saulari`,
-      vencimento_proximo: `⚠️ *Vencimento Próximo*\n\nApólice: ${dados.numero}\nVence em: ${dados.diasRestantes} dias\nCliente: ${dados.cliente}\n\nSistema Saulari`,
-      pagamento_recebido: `✅ *Pagamento Confirmado*\n\nApólice: ${dados.numero}\nValor: ${dados.valor}\nCliente: ${dados.cliente}\n\nSistema Saulari`
-    };
-
-    try {
-      const mensagem = mensagensTemplate[evento] || `📋 Notificação: ${dados.mensagem}`;
-      
-      const response = await fetch('/api/send-whatsapp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          numero: numero,
-          mensagem: mensagem
-        })
-      });
-
-      if (response.ok) {
-        logAction({ action: 'notificacao_whatsapp', entity: 'comunicacao', details: { evento, numero: numero.replace(/(\d{2})(\d{5})(\d{4})/, '$1*****$3'), status: 'success' } });
-        return true;
-      }
-    } catch (error) {
-      console.log('Notificação WhatsApp falhou:', error.message);
-      logAction({ action: 'notificacao_whatsapp', entity: 'comunicacao', details: { evento, status: 'error', error: error.message } });
-    }
-    return false;
-  }
-
-  // Relatórios automáticos por e-mail
-  async function enviarRelatorioEmail(destinatario, tipoRelatorio, dados) {
-    const templates = {
-      vendas_diarias: {
-        assunto: `📊 Relatório de Vendas - ${new Date().toLocaleDateString()}`,
-        html: `
-          <h2>Relatório de Vendas Diárias</h2>
-          <p><strong>Total de Apólices:</strong> ${dados.totalApolices}</p>
-          <p><strong>Valor Total:</strong> ${formatCurrency(dados.valorTotal)}</p>
-          <p><strong>Novos Clientes:</strong> ${dados.novosClientes}</p>
-          <hr>
-          <p>Relatório gerado automaticamente pelo Sistema Saulari</p>
-        `
-      },
-      vencimentos_semana: {
-        assunto: `⚠️ Apólices Vencendo Esta Semana`,
-        html: `
-          <h2>Apólices com Vencimento Próximo</h2>
-          ${dados.apolices.map(a => `
-            <p>• ${a.numero} - ${a.cliente} - Vence: ${a.dataVencimento}</p>
-          `).join('')}
-          <hr>
-          <p>Total: ${dados.apolices.length} apólices</p>
-        `
-      }
-    };
-
-    try {
-      const template = templates[tipoRelatorio];
-      if (!template) return false;
-
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          para: destinatario,
-          assunto: template.assunto,
-          html: template.html
-        })
-      });
-
-      if (response.ok) {
-        logAction({ action: 'relatorio_email', entity: 'comunicacao', details: { tipo: tipoRelatorio, destinatario: destinatario.replace(/(.{3}).*(@.*)/, '$1***$2'), status: 'success' } });
-        return true;
-      }
-    } catch (error) {
-      console.log('Envio de relatório por e-mail falhou:', error.message);
-      logAction({ action: 'relatorio_email', entity: 'comunicacao', details: { tipo: tipoRelatorio, status: 'error', error: error.message } });
-    }
-    return false;
-  }
-
-  // Cotação automática de seguros (sugestões baseadas em perfil)
-  async function sugerirCotacoes(dadosCliente, dadosVeiculo) {
-    try {
-      // Algoritmo interno de sugestão baseado no perfil
-      const perfil = {
-        idade: calcularIdade(dadosCliente.dataNascimento),
-        experiencia: dadosCliente.tempoHabilitacao || 5,
-        valorVeiculo: dadosVeiculo.valor || 50000,
-        anoVeiculo: dadosVeiculo.ano || new Date().getFullYear(),
-        cep: dadosCliente.cep
-      };
-
-      // Lógica de cálculo interno
-      let fatorRisco = 1.0;
-      if (perfil.idade < 25) fatorRisco += 0.3;
-      if (perfil.experiencia < 2) fatorRisco += 0.2;
-      if (perfil.anoVeiculo < 2015) fatorRisco += 0.1;
-
-      const valorBase = perfil.valorVeiculo * 0.03; // 3% do valor do veículo
-      const premioSugerido = valorBase * fatorRisco;
-
-      const sugestoes = [
-        {
-          cobertura: 'Básica',
-          valor: premioSugerido,
-          franquia: '50% do valor',
-          beneficios: ['Colisão', 'Incêndio', 'Roubo']
-        },
-        {
-          cobertura: 'Completa',
-          valor: premioSugerido * 1.5,
-          franquia: 'R$ 2.000',
-          beneficios: ['Colisão', 'Incêndio', 'Roubo', 'Vidros', 'Assistência 24h']
-        },
-        {
-          cobertura: 'Premium',
-          valor: premioSugerido * 2,
-          franquia: 'R$ 1.000',
-          beneficios: ['Cobertura Total', 'Carro Reserva', 'Assistência Internacional']
-        }
-      ];
-
-      logAction({ 
-        action: 'sugestao_cotacao', 
-        entity: 'cotacao', 
-        details: { 
-          cliente: dadosCliente.nome,
-          veiculo: `${dadosVeiculo.marca} ${dadosVeiculo.modelo}`,
-          sugestoes: sugestoes.length,
-          valorBase: premioSugerido
-        } 
-      });
-
-      return sugestoes;
-
-    } catch (error) {
-      console.log('Erro ao gerar sugestões de cotação:', error.message);
-      logAction({ action: 'sugestao_cotacao', entity: 'cotacao', details: { status: 'error', error: error.message } });
-      return [];
-    }
-  }
-
-  // Função auxiliar para calcular idade
-  function calcularIdade(dataNascimento) {
-    if (!dataNascimento) return 30; // idade padrão
-    const hoje = new Date();
-    const nascimento = new Date(dataNascimento);
-    let idade = hoje.getFullYear() - nascimento.getFullYear();
-    const mes = hoje.getMonth() - nascimento.getMonth();
-    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-      idade--;
-    }
-    return idade;
-  }
-
   return (
     <div className="app-shell">
       {!currentUser ? (
@@ -993,6 +805,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
         <nav className="nav" aria-label="Principal">
           <NavLink label="Dashboard" icon="📊" value="dashboard" />
           <NavLink label="Seguros" icon="📋" value="seguros" />
+          <NavLink label="Cotação" icon="💰" value="cotacao" />
           <NavLink label="Relatórios" icon="📈" value="relatorios" />
           <NavLink label="Configurações" icon="⚙️" value="config" />
         </nav>
@@ -1315,16 +1128,16 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   <table className="seguros">
         <thead>
           <tr>
-            <th>Cliente</th>
-            <th>CPF</th>
-            <th>Telefone</th>
-            <th>Seguro</th>
-            <th>Seguradora</th>
-            <th>Prêmio</th>
-            <th>Início</th>
-            <th>Status</th>
-            <th>Fim</th>
-            <th>Ações</th>
+            <th style={{minWidth: 160}}>Cliente</th>
+            <th style={{minWidth: 120}}>CPF</th>
+            <th style={{minWidth: 130}}>Telefone</th>
+            <th style={{minWidth: 140}}>Seguro</th>
+            <th style={{minWidth: 120}}>Seguradora</th>
+            <th style={{minWidth: 100, textAlign: 'right'}}>Prêmio</th>
+            <th style={{minWidth: 100}}>Início</th>
+            <th style={{minWidth: 80}}>Status</th>
+            <th style={{minWidth: 100}}>Fim</th>
+            <th style={{minWidth: 280}}>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -1335,66 +1148,85 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
             if (fim < hoje) classeIndicador = 'vencido'; else if (diff >= 0 && diff <= 30) classeIndicador = 'vencendo';
             return (
               <tr key={s.id}>
-                <td>{s.cliente_nome}</td>
-                <td>{validationUtils.formatCPF(s.cliente_cpf || '')}</td>
-                <td>{validationUtils.formatPhone(s.cliente_numero || '') || '-'}</td>
-                <td>{s.tipo_seguro}</td>
-                <td>{s.seguradora}</td>
-                <td>R$ {validationUtils.formatCurrency(s.premio?.toString() || '0')}</td>
-                <td>{s.vigencia_inicio}</td>
+                <td style={{fontWeight: 600, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={s.cliente_nome}>
+                  {s.cliente_nome}
+                </td>
+                <td style={{fontFamily: 'monospace', fontSize: 13}}>
+                  {validationUtils.formatCPF(s.cliente_cpf || '')}
+                </td>
+                <td style={{fontFamily: 'monospace', fontSize: 13}}>
+                  {validationUtils.formatPhone(s.cliente_numero || '') || <span style={{color: '#999'}}>-</span>}
+                </td>
+                <td style={{maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={s.tipo_seguro}>
+                  {s.tipo_seguro}
+                </td>
+                <td style={{fontWeight: 500, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={s.seguradora}>
+                  {s.seguradora}
+                </td>
+                <td style={{textAlign: 'right', fontWeight: 600, color: '#1976d2'}}>
+                  R$ {validationUtils.formatCurrency(s.premio?.toString() || '0')}
+                </td>
+                <td style={{fontSize: 13, color: '#666'}}>
+                  {s.vigencia_inicio ? new Date(s.vigencia_inicio).toLocaleDateString('pt-BR') : '-'}
+                </td>
                 <td>
                   {(() => {
                     const st = statusDoSeguro(s);
                     return (
                       <span className={`status-pill status-${st}`}>
-                        {st === 'ativo' ? 'Ativo' : st === 'vencendo' ? 'Vencendo' : 'Vencido'}
+                        {st === 'ativo' ? '✅ Ativo' : st === 'vencendo' ? '⚠️ Vencendo' : '❌ Vencido'}
                       </span>
                     );
                   })()}
                 </td>
-                <td>{classeIndicador && <span className={`indicador ${classeIndicador}`}></span>}{s.vigencia_fim}</td>
+                <td style={{fontSize: 13, fontWeight: 500}}>
+                  {classeIndicador && <span className={`indicador ${classeIndicador}`}></span>}
+                  {s.vigencia_fim ? new Date(s.vigencia_fim).toLocaleDateString('pt-BR') : '-'}
+                </td>
                 <td>
-                  <div className="table-actions">
-                    <button className="mini-btn" onClick={() => editarSeguro(s)}>Editar</button>
-                    <button className="mini-btn danger" onClick={() => excluirSeguro(s.id)}>Excluir</button>
-                    <label className="mini-btn" style={{cursor:'pointer'}}>
-                      Anexar PDF
-                      <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
-                    </label>
-                    {s.apolice_pdf && (
-                      <>
+                  <div className="table-actions" style={{display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center'}}>
+                    <button className="mini-btn" onClick={() => editarSeguro(s)} style={{fontSize: 11}}>
+                      ✏️ Editar
+                    </button>
+                    <button className="mini-btn danger" onClick={() => excluirSeguro(s.id)} style={{fontSize: 11}}>
+                      🗑️ Excluir
+                    </button>
+                    
+                    {!s.apolice_pdf ? (
+                      <label className="mini-btn" style={{cursor:'pointer', fontSize: 11, background: '#fff3cd', border: '1px solid #ffeaa7'}}>
+                        📎 Anexar
+                        <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
+                      </label>
+                    ) : (
+                      <div style={{display: 'flex', gap: 2}}>
                         <a
                           className="mini-btn"
                           href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&signed=1`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{background:'#e6f5ec', color:'#0a7a3e', border:'1px solid #b9e3c9'}}
+                          style={{background:'#e6f5ec', color:'#0a7a3e', border:'1px solid #b9e3c9', fontSize: 11}}
+                          title="Visualizar PDF"
                         >
-                          Ver PDF
+                          👁️ Ver
                         </a>
                         <a
                           className="mini-btn"
                           href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&download=1`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{background:'#eef3f7', color:'#0f3554', border:'1px solid #cfdbe5'}}
+                          style={{background:'#eef2ff', color:'#0f3554', border:'1px solid #c7d2fe', fontSize: 11}}
+                          title="Baixar PDF"
                         >
-                          Baixar
+                          📥 Baixar
                         </a>
-                      </>
+                      </div>
                     )}
-                    {s.apolice_pdf && (
-                      <a
-                        className="mini-btn"
-                        href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&download=1`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{background:'#eef2ff', color:'#0f3554', border:'1px solid #c7d2fe'}}
-                      >
-                        Baixar PDF
-                      </a>
+                    
+                    {uploadingId===s.id && (
+                      <span style={{fontSize:11, color:'#1769aa', fontWeight: 500}}>
+                        ⏳ Enviando...
+                      </span>
                     )}
-                    {uploadingId===s.id && <span style={{fontSize:12,color:'#1769aa'}}>Enviando...</span>}
                   </div>
                 </td>
               </tr>
@@ -1402,7 +1234,11 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
           })}
           {segurosFiltrados.length === 0 && !loading && (
             <tr>
-              <td colSpan={8} style={{ textAlign: 'center', padding: 30, color: '#4b6980' }}>Nenhum seguro encontrado.</td>
+              <td colSpan={10} style={{ textAlign: 'center', padding: 40, color: '#4b6980', fontSize: 16 }}>
+                <div style={{opacity: 0.7}}>📋</div>
+                <div style={{marginTop: 8}}>Nenhum seguro encontrado</div>
+                <small style={{opacity: 0.8}}>Experimente alterar os filtros ou termo de busca</small>
+              </td>
             </tr>
           )}
         </tbody>
@@ -1434,6 +1270,93 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
         </div>
       )}
         </div>
+        )}
+        {section === 'cotacao' && (
+          <div className="container-seguros">
+            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>💰 Cotação</h1>
+            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Compare preços entre seguradoras e encontre as melhores ofertas.</p>
+            
+            <div style={{
+              background: 'linear-gradient(135deg, #f6fbff, #e8f4fd)',
+              border: '2px dashed #b8d4f0',
+              borderRadius: 16,
+              padding: 40,
+              textAlign: 'center',
+              marginTop: 24
+            }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🚀</div>
+              <h2 style={{ 
+                color: '#1976d2', 
+                margin: '0 0 12px', 
+                fontSize: 24, 
+                fontWeight: 700 
+              }}>
+                Em Breve
+              </h2>
+              <p style={{ 
+                color: '#4b6980', 
+                fontSize: 16, 
+                margin: '0 0 20px',
+                lineHeight: 1.5
+              }}>
+                Estamos desenvolvendo a integração com as APIs das principais seguradoras para oferecer cotações automáticas em tempo real, igual ao <strong>SEGFY</strong>.
+              </p>
+              
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: 16,
+                marginTop: 32
+              }}>
+                <div style={{
+                  background: '#ffffff',
+                  padding: 20,
+                  borderRadius: 12,
+                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.1)'
+                }}>
+                  <h4 style={{ color: '#1976d2', margin: '0 0 8px' }}>🔗 Integrações</h4>
+                  <p style={{ fontSize: 14, color: '#4b6980', margin: 0 }}>
+                    Porto Seguro, Bradesco, SulAmérica, Allianz e mais
+                  </p>
+                </div>
+                
+                <div style={{
+                  background: '#ffffff',
+                  padding: 20,
+                  borderRadius: 12,
+                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.1)'
+                }}>
+                  <h4 style={{ color: '#1976d2', margin: '0 0 8px' }}>⚡ Cotação Rápida</h4>
+                  <p style={{ fontSize: 14, color: '#4b6980', margin: 0 }}>
+                    Resultados em segundos para múltiplas seguradoras
+                  </p>
+                </div>
+                
+                <div style={{
+                  background: '#ffffff',
+                  padding: 20,
+                  borderRadius: 12,
+                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.1)'
+                }}>
+                  <h4 style={{ color: '#1976d2', margin: '0 0 8px' }}>📊 Comparação</h4>
+                  <p style={{ fontSize: 14, color: '#4b6980', margin: 0 }}>
+                    Análise detalhada de coberturas e preços
+                  </p>
+                </div>
+              </div>
+              
+              <div style={{ 
+                marginTop: 24, 
+                padding: 16, 
+                background: '#fff3cd',
+                border: '1px solid #ffeaa7',
+                borderRadius: 8,
+                fontSize: 14
+              }}>
+                <strong>🔧 Em desenvolvimento:</strong> APIs das seguradoras sendo integradas para cotações automáticas
+              </div>
+            </div>
+          </div>
         )}
         {section === 'relatorios' && (
           <div className="container-seguros">
