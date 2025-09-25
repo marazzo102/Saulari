@@ -258,9 +258,6 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
 }export default function Home() {
 
   const [order, setOrder] = useState({ column: 'vigencia_fim', ascending: true });
-  const [theme, setTheme] = useState(typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'light') : 'light');
-  const [primary, setPrimary] = useState(typeof window !== 'undefined' ? (localStorage.getItem('primary') || '#1976d2') : '#1976d2');
-  const [primaryAlt, setPrimaryAlt] = useState(typeof window !== 'undefined' ? (localStorage.getItem('primaryAlt') || '#4fc3f7') : '#4fc3f7');
   const [seguros, setSeguros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -288,6 +285,14 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsSearch, setLogsSearch] = useState('');
+
+  // Estados para integrações
+  const [integracoes, setIntegracoes] = useState({
+    consultaCPF: { ativa: false, apiKey: '', endpoint: '' },
+    whatsapp: { ativa: false, apiKey: '', numero: '' },
+    email: { ativa: false, smtpHost: '', smtpUser: '', smtpPass: '' },
+    cotacaoSeguros: { ativa: false, providers: [] }
+  });
 
   // Auth (Supabase)
   const [currentUser, setCurrentUser] = useState(null);
@@ -432,19 +437,6 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   useEffect(() => { fetchSeguros(); // inicial
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
-      document.documentElement.style.setProperty('--primary', primary);
-      document.documentElement.style.setProperty('--primaryAlt', primaryAlt);
-    }
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('theme', theme);
-      localStorage.setItem('primary', primary);
-      localStorage.setItem('primaryAlt', primaryAlt);
-    }
-  }, [theme, primary, primaryAlt]);
 
   const hoje = new Date();
   const vencendo = seguros.filter(s => {
@@ -743,6 +735,179 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     a.href = url; a.download = 'logs.csv'; a.click();
     URL.revokeObjectURL(url);
     logAction({ action: 'export_csv', entity: 'logs', details: { quantidade: visible.length } });
+  }
+
+  // Funções para integrações
+  async function consultarCPF(cpf) {
+    if (!integracoes.consultaCPF.ativa || !integracoes.consultaCPF.apiKey) {
+      alert('Integração de consulta CPF não configurada');
+      return null;
+    }
+
+    try {
+      // Implementação básica - adaptar conforme API escolhida
+      const response = await fetch(`${integracoes.consultaCPF.endpoint}/cpf/${cpf}`, {
+        headers: {
+          'Authorization': `Bearer ${integracoes.consultaCPF.apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        logAction({ action: 'consulta_cpf', entity: 'integracao', details: { cpf, status: 'success' } });
+        return data;
+      } else {
+        throw new Error('Erro na consulta CPF');
+      }
+    } catch (error) {
+      console.error('Erro ao consultar CPF:', error);
+      logAction({ action: 'consulta_cpf', entity: 'integracao', details: { cpf, status: 'error', error: error.message } });
+      return null;
+    }
+  }
+
+  async function enviarWhatsApp(numero, mensagem) {
+    if (!integracoes.whatsapp.ativa || !integracoes.whatsapp.apiKey) {
+      alert('Integração WhatsApp não configurada');
+      return false;
+    }
+
+    try {
+      // Implementação usando Twilio API
+      const response = await fetch('/api/send-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: numero,
+          message: mensagem,
+          apiKey: integracoes.whatsapp.apiKey,
+          from: integracoes.whatsapp.numero
+        })
+      });
+
+      if (response.ok) {
+        logAction({ action: 'envio_whatsapp', entity: 'integracao', details: { numero, status: 'success' } });
+        return true;
+      } else {
+        throw new Error('Erro no envio WhatsApp');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar WhatsApp:', error);
+      logAction({ action: 'envio_whatsapp', entity: 'integracao', details: { numero, status: 'error', error: error.message } });
+      return false;
+    }
+  }
+
+  async function enviarEmail(destinatario, assunto, corpo) {
+    if (!integracoes.email.ativa || !integracoes.email.smtpHost) {
+      alert('Integração de e-mail não configurada');
+      return false;
+    }
+
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: destinatario,
+          subject: assunto,
+          body: corpo,
+          smtp: {
+            host: integracoes.email.smtpHost,
+            user: integracoes.email.smtpUser,
+            pass: integracoes.email.smtpPass
+          }
+        })
+      });
+
+      if (response.ok) {
+        logAction({ action: 'envio_email', entity: 'integracao', details: { destinatario, assunto, status: 'success' } });
+        return true;
+      } else {
+        throw new Error('Erro no envio de e-mail');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar e-mail:', error);
+      logAction({ action: 'envio_email', entity: 'integracao', details: { destinatario, status: 'error', error: error.message } });
+      return false;
+    }
+  }
+
+  async function cotarSeguros(dadosSeguro) {
+    if (!integracoes.cotacaoSeguros.ativa) {
+      alert('Integração de cotação não configurada');
+      return [];
+    }
+
+    try {
+      const response = await fetch('/api/cotar-seguros', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dados: dadosSeguro,
+          providers: integracoes.cotacaoSeguros.providers
+        })
+      });
+
+      if (response.ok) {
+        const cotacoes = await response.json();
+        logAction({ action: 'cotacao_seguros', entity: 'integracao', details: { quantidade: cotacoes.length, status: 'success' } });
+        return cotacoes;
+      } else {
+        throw new Error('Erro na cotação');
+      }
+    } catch (error) {
+      console.error('Erro ao cotar seguros:', error);
+      logAction({ action: 'cotacao_seguros', entity: 'integracao', details: { status: 'error', error: error.message } });
+      return [];
+    }
+  }
+
+  // Funções de teste das integrações
+  async function testarConsultaCPF() {
+    const resultado = await consultarCPF('12345678901');
+    if (resultado) {
+      alert('✅ Teste de consulta CPF realizado com sucesso!');
+    } else {
+      alert('❌ Erro no teste de consulta CPF. Verifique as configurações.');
+    }
+  }
+
+  async function testarWhatsApp() {
+    const sucesso = await enviarWhatsApp(integracoes.whatsapp.numero, '🧪 Teste de integração WhatsApp - Sistema Saulari');
+    if (sucesso) {
+      alert('✅ Teste de WhatsApp enviado com sucesso!');
+    } else {
+      alert('❌ Erro no teste de WhatsApp. Verifique as configurações.');
+    }
+  }
+
+  async function testarEmail() {
+    const sucesso = await enviarEmail(
+      integracoes.email.smtpUser, 
+      '🧪 Teste de Integração - Sistema Saulari',
+      'Este é um e-mail de teste para verificar a configuração SMTP.'
+    );
+    if (sucesso) {
+      alert('✅ Teste de e-mail enviado com sucesso!');
+    } else {
+      alert('❌ Erro no teste de e-mail. Verifique as configurações.');
+    }
+  }
+
+  async function testarCotacao() {
+    const dadosTeste = {
+      tipo: 'auto',
+      valor: 50000,
+      perfil: 'teste'
+    };
+    const cotacoes = await cotarSeguros(dadosTeste);
+    if (cotacoes.length > 0) {
+      alert(`✅ Teste de cotação realizado! ${cotacoes.length} cotações encontradas.`);
+    } else {
+      alert('❌ Erro no teste de cotação. Verifique as configurações.');
+    }
   }
 
   return (
@@ -1290,51 +1455,6 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                 <button className="btn-secondary" type="button" onClick={signOut}>Sair da conta</button>
               </div>
             </div>
-            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Preferências de Notificação</b>
-              <form style={{marginTop:16, marginBottom:24, display:'grid', gap:18, maxWidth:420}}>
-                <label style={{display:'flex', alignItems:'center', gap:10}}>
-                  <input type="checkbox" /> Receber alertas por e-mail para seguros vencendo
-                </label>
-                <label style={{display:'flex', alignItems:'center', gap:10}}>
-                  <input type="checkbox" /> Receber alertas por WhatsApp para seguros vencendo
-                </label>
-                <label style={{display:'flex', alignItems:'center', gap:10}}>
-                  <input type="checkbox" /> Receber alertas por e-mail para seguros vencidos
-                </label>
-                <label style={{display:'flex', alignItems:'center', gap:10}}>
-                  <input type="checkbox" /> Receber alertas por WhatsApp para seguros vencidos
-                </label>
-                <label style={{display:'flex', alignItems:'center', gap:10}}>
-                  <input type="checkbox" /> Ativar notificações de renovação automática
-                </label>
-                <button className="btn-main" type="button" style={{marginTop:10, width:180}}>Salvar preferências</button>
-              </form>
-            </div> {/* Fim Preferências de Notificação */}
-
-            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Personalização Visual</b>
-              <div style={{display:'grid', gap:14, marginTop:12, maxWidth:520}}>
-                <div>
-                  <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>Tema</label>
-                  <div style={{display:'flex', gap:8}}>
-                    <button type="button" className="btn-secondary" onClick={() => setTheme('light')} aria-pressed={theme==='light'}>Claro</button>
-                    <button type="button" className="btn-secondary" onClick={() => setTheme('dark')} aria-pressed={theme==='dark'}>Escuro</button>
-                  </div>
-                </div>
-                <div>
-                  <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>Cor Primária</label>
-                  <input type="color" value={primary} onChange={(e)=> setPrimary(e.target.value)} />
-                </div>
-                <div>
-                  <label style={{fontSize:12, fontWeight:700, textTransform:'uppercase', color:'#4b6980'}}>Cor Primária (Alt)</label>
-                  <input type="color" value={primaryAlt} onChange={(e)=> setPrimaryAlt(e.target.value)} />
-                </div>
-                <div style={{display:'flex', gap:8}}>
-                  <button className="btn-secondary" type="button" onClick={()=>{ setPrimary('#1976d2'); setPrimaryAlt('#4fc3f7'); }}>Restaurar cores padrão</button>
-                </div>
-              </div>
-            </div> {/* Fim Personalização Visual */}
 
             {/* Logs e Auditoria */}
             <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
@@ -1381,6 +1501,193 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                 </table>
               </div>
             </div> {/* Fim Logs e Auditoria */}
+
+            {/* Integrações */}
+            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
+              <b>🔗 Integrações Externas</b>
+              <p style={{fontSize:14, color:'#4b6980', margin:'8px 0 16px'}}>
+                Configure integrações com APIs externas para automação e enriquecimento de dados.
+              </p>
+
+              {/* Consulta CPF */}
+              <div style={{marginBottom:20, padding:16, border:'1px solid #e2e9f0', borderRadius:8}}>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:12}}>
+                  <input 
+                    type="checkbox" 
+                    checked={integracoes.consultaCPF.ativa}
+                    onChange={(e) => setIntegracoes(prev => ({
+                      ...prev,
+                      consultaCPF: { ...prev.consultaCPF, ativa: e.target.checked }
+                    }))}
+                  />
+                  <strong>Consulta CPF (Receita Federal)</strong>
+                </div>
+                <p style={{fontSize:13, color:'#666', marginBottom:12}}>
+                  Validação automática de CPF e preenchimento de dados do cliente
+                </p>
+                {integracoes.consultaCPF.ativa && (
+                  <div style={{display:'grid', gap:10, maxWidth:400}}>
+                    <input 
+                      className="search-input"
+                      placeholder="API Key"
+                      value={integracoes.consultaCPF.apiKey}
+                      onChange={(e) => setIntegracoes(prev => ({
+                        ...prev,
+                        consultaCPF: { ...prev.consultaCPF, apiKey: e.target.value }
+                      }))}
+                    />
+                    <input 
+                      className="search-input"
+                      placeholder="Endpoint da API"
+                      value={integracoes.consultaCPF.endpoint}
+                      onChange={(e) => setIntegracoes(prev => ({
+                        ...prev,
+                        consultaCPF: { ...prev.consultaCPF, endpoint: e.target.value }
+                      }))}
+                    />
+                    <button className="btn-secondary" type="button" style={{width:'fit-content'}} onClick={testarConsultaCPF}>
+                      🧪 Testar Conexão
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* WhatsApp/SMS */}
+              <div style={{marginBottom:20, padding:16, border:'1px solid #e2e9f0', borderRadius:8}}>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:12}}>
+                  <input 
+                    type="checkbox" 
+                    checked={integracoes.whatsapp.ativa}
+                    onChange={(e) => setIntegracoes(prev => ({
+                      ...prev,
+                      whatsapp: { ...prev.whatsapp, ativa: e.target.checked }
+                    }))}
+                  />
+                  <strong>WhatsApp/SMS (Twilio)</strong>
+                </div>
+                <p style={{fontSize:13, color:'#666', marginBottom:12}}>
+                  Envio automático de notificações sobre vencimentos e renovações
+                </p>
+                {integracoes.whatsapp.ativa && (
+                  <div style={{display:'grid', gap:10, maxWidth:400}}>
+                    <input 
+                      className="search-input"
+                      placeholder="API Key Twilio"
+                      value={integracoes.whatsapp.apiKey}
+                      onChange={(e) => setIntegracoes(prev => ({
+                        ...prev,
+                        whatsapp: { ...prev.whatsapp, apiKey: e.target.value }
+                      }))}
+                    />
+                    <input 
+                      className="search-input"
+                      placeholder="Número WhatsApp Business"
+                      value={integracoes.whatsapp.numero}
+                      onChange={(e) => setIntegracoes(prev => ({
+                        ...prev,
+                        whatsapp: { ...prev.whatsapp, numero: e.target.value }
+                      }))}
+                    />
+                    <button className="btn-secondary" type="button" style={{width:'fit-content'}} onClick={testarWhatsApp}>
+                      📱 Enviar Teste
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* E-mail */}
+              <div style={{marginBottom:20, padding:16, border:'1px solid #e2e9f0', borderRadius:8}}>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:12}}>
+                  <input 
+                    type="checkbox" 
+                    checked={integracoes.email.ativa}
+                    onChange={(e) => setIntegracoes(prev => ({
+                      ...prev,
+                      email: { ...prev.email, ativa: e.target.checked }
+                    }))}
+                  />
+                  <strong>E-mail Automático (SMTP)</strong>
+                </div>
+                <p style={{fontSize:13, color:'#666', marginBottom:12}}>
+                  Envio de relatórios, confirmações e documentos por e-mail
+                </p>
+                {integracoes.email.ativa && (
+                  <div style={{display:'grid', gap:10, maxWidth:400}}>
+                    <input 
+                      className="search-input"
+                      placeholder="Servidor SMTP (ex: smtp.gmail.com)"
+                      value={integracoes.email.smtpHost}
+                      onChange={(e) => setIntegracoes(prev => ({
+                        ...prev,
+                        email: { ...prev.email, smtpHost: e.target.value }
+                      }))}
+                    />
+                    <input 
+                      className="search-input"
+                      placeholder="Usuário/E-mail"
+                      value={integracoes.email.smtpUser}
+                      onChange={(e) => setIntegracoes(prev => ({
+                        ...prev,
+                        email: { ...prev.email, smtpUser: e.target.value }
+                      }))}
+                    />
+                    <input 
+                      className="search-input"
+                      type="password"
+                      placeholder="Senha/Token"
+                      value={integracoes.email.smtpPass}
+                      onChange={(e) => setIntegracoes(prev => ({
+                        ...prev,
+                        email: { ...prev.email, smtpPass: e.target.value }
+                      }))}
+                    />
+                    <button className="btn-secondary" type="button" style={{width:'fit-content'}} onClick={testarEmail}>
+                      ✉️ Testar E-mail
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Cotação de Seguros */}
+              <div style={{marginBottom:20, padding:16, border:'1px solid #e2e9f0', borderRadius:8}}>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:12}}>
+                  <input 
+                    type="checkbox" 
+                    checked={integracoes.cotacaoSeguros.ativa}
+                    onChange={(e) => setIntegracoes(prev => ({
+                      ...prev,
+                      cotacaoSeguros: { ...prev.cotacaoSeguros, ativa: e.target.checked }
+                    }))}
+                  />
+                  <strong>Cotação Automática de Seguros</strong>
+                </div>
+                <p style={{fontSize:13, color:'#666', marginBottom:12}}>
+                  Comparação automática de preços entre seguradoras
+                </p>
+                {integracoes.cotacaoSeguros.ativa && (
+                  <div style={{maxWidth:400}}>
+                    <p style={{fontSize:12, color:'#888', marginBottom:8}}>
+                      Selecione as seguradoras para cotação:
+                    </p>
+                    <div style={{display:'grid', gap:8}}>
+                      {['Porto Seguro', 'Bradesco Seguros', 'SulAmérica', 'Azul Seguros', 'Mapfre'].map(seguradora => (
+                        <label key={seguradora} style={{display:'flex', alignItems:'center', gap:8}}>
+                          <input type="checkbox" />
+                          <span style={{fontSize:14}}>{seguradora}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <button className="btn-secondary" type="button" style={{width:'fit-content', marginTop:10}} onClick={testarCotacao}>
+                      💰 Testar Cotação
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <button className="btn-main" type="button" style={{marginTop:16}}>
+                💾 Salvar Configurações de Integração
+              </button>
+            </div> {/* Fim Integrações */}
 
             {/* Outras seções de configurações... */}
           </div>
