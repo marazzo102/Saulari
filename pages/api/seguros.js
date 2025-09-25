@@ -1,4 +1,15 @@
 import { supabase } from '../../lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
+
+// Cliente admin (service role) apenas para operações críticas (PUT/DELETE) evitando políticas amplas públicas
+function getAdminClient(){
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if(!url || !key){
+    return null; // fallback: usa o anon
+  }
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+}
 
 export default async function handler(req, res) {
   try {
@@ -47,9 +58,11 @@ export default async function handler(req, res) {
     if (req.method === 'PUT') {
       const { id, ...fields } = req.body;
       if (!id) return res.status(400).json({ error: 'ID é obrigatório para atualizar' });
-      const { data, error } = await supabase.from('seguros').update(fields).eq('id', id);
+      const admin = getAdminClient();
+      const client = admin || supabase;
+      const { data, error } = await client.from('seguros').update(fields).eq('id', id).select();
       if (error) {
-        console.error('Erro Supabase:', error);
+        console.error('Erro Supabase (PUT):', error);
         return res.status(500).json({ error: error.message, details: error });
       }
       return res.status(200).json(data);
@@ -58,9 +71,11 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
       const id = req.query.id;
       if (!id) return res.status(400).json({ error: 'ID é obrigatório para excluir' });
-      const { data, error } = await supabase.from('seguros').delete().eq('id', id);
+      const admin = getAdminClient();
+      const client = admin || supabase;
+      const { data, error } = await client.from('seguros').delete().eq('id', id).select();
       if (error) {
-        console.error('Erro Supabase:', error);
+        console.error('Erro Supabase (DELETE):', error);
         return res.status(500).json({ error: error.message, details: error });
       }
       return res.status(200).json(data);

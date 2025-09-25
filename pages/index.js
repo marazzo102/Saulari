@@ -107,6 +107,7 @@ export default function Home() {
   const [showAlerts, setShowAlerts] = useState(true);
   const [alertsAsToast, setAlertsAsToast] = useState(false);
   const [statusFilter, setStatusFilter] = useState('todos'); // 'todos' | 'vencidos' | 'vencendo'
+  const [anexoFilter, setAnexoFilter] = useState('todos'); // 'todos' | 'com' | 'sem'
   const [formData, setFormData] = useState({
     id: null,
     cliente_nome: '',
@@ -240,7 +241,8 @@ export default function Home() {
 
   const segurosFiltrados = seguros.filter(s =>
     (s.cliente_nome.toLowerCase().includes(search.toLowerCase()) || s.cliente_cpf.includes(search)) &&
-    (statusFilter === 'todos' || (statusFilter === 'vencidos' && new Date(s.vigencia_fim) < hoje) || (statusFilter === 'vencendo' && (()=>{const fim=new Date(s.vigencia_fim);const diff=(fim-hoje)/(1000*60*60*24);return diff>=0 && diff<=30;})()))
+    (statusFilter === 'todos' || (statusFilter === 'vencidos' && new Date(s.vigencia_fim) < hoje) || (statusFilter === 'vencendo' && (()=>{const fim=new Date(s.vigencia_fim);const diff=(fim-hoje)/(1000*60*60*24);return diff>=0 && diff<=30;})())) &&
+    (anexoFilter === 'todos' || (anexoFilter === 'com' && !!s.apolice_pdf) || (anexoFilter === 'sem' && !s.apolice_pdf))
   );
 
   function exportVencidosCSV(){
@@ -305,13 +307,16 @@ export default function Home() {
       }
 
       const { path: internalPath } = await uploadRes.json();
-      
-      // Atualiza o seguro com o path do arquivo
+
+      // Atualiza o seguro com o path do arquivo (servidor)
       await fetch('/api/seguros', { 
         method:'PUT', 
         headers:{'Content-Type':'application/json'}, 
         body: JSON.stringify({ ...seguro, apolice_pdf: internalPath }) 
       });
+      
+      // Atualização otimista no estado local para exibir o botão "Ver PDF" imediatamente
+      setSeguros(prev => prev.map(item => item.id === seguro.id ? { ...item, apolice_pdf: internalPath } : item));
       
       await fetchSeguros(order.column, order.ascending);
       alert('PDF anexado com sucesso.');
@@ -617,6 +622,11 @@ export default function Home() {
               <div className="value">R$ {premioAtivos.toLocaleString('pt-BR')}</div>
               <div className="sub">Soma dos prêmios</div>
             </div>
+            <div className="kpi">
+              <h3>Sem anexo</h3>
+              <div className="value">{seguros.filter(s=>!s.apolice_pdf).length}</div>
+              <div className="sub">Precisa anexar PDF</div>
+            </div>
           </section>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -737,6 +747,10 @@ export default function Home() {
         <button className={`chip-filter ${statusFilter==='todos'?'active':''}`} onClick={()=>setStatusFilter('todos')}>Todos ({seguros.length})</button>
         <button className={`chip-filter ${statusFilter==='vencidos'?'active':''}`} onClick={()=>setStatusFilter('vencidos')}>Vencidos ({vencidos.length})</button>
         <button className={`chip-filter ${statusFilter==='vencendo'?'active':''}`} onClick={()=>setStatusFilter('vencendo')}>Em 30 dias ({vencendo.length})</button>
+        <span style={{margin:'0 6px', color:'#4b6980', fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:.5}}>Anexos</span>
+        <button className={`chip-filter ${anexoFilter==='todos'?'active':''}`} onClick={()=>setAnexoFilter('todos')}>Todos</button>
+        <button className={`chip-filter ${anexoFilter==='com'?'active':''}`} onClick={()=>setAnexoFilter('com')}>Com PDF ({seguros.filter(s=>!!s.apolice_pdf).length})</button>
+        <button className={`chip-filter ${anexoFilter==='sem'?'active':''}`} onClick={()=>setAnexoFilter('sem')}>Sem PDF ({seguros.filter(s=>!s.apolice_pdf).length})</button>
       </div>
 
       <div className="ordenacao-bar">
@@ -799,14 +813,36 @@ export default function Home() {
                       <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
                     </label>
                     {s.apolice_pdf && (
+                      <>
+                        <a
+                          className="mini-btn"
+                          href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&signed=1`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{background:'#e6f5ec', color:'#0a7a3e', border:'1px solid #b9e3c9'}}
+                        >
+                          Ver PDF
+                        </a>
+                        <a
+                          className="mini-btn"
+                          href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&download=1`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{background:'#eef3f7', color:'#0f3554', border:'1px solid #cfdbe5'}}
+                        >
+                          Baixar
+                        </a>
+                      </>
+                    )}
+                    {s.apolice_pdf && (
                       <a
                         className="mini-btn"
-                        href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}`}
+                        href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&download=1`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{background:'#e6f5ec', color:'#0a7a3e', border:'1px solid #b9e3c9'}}
+                        style={{background:'#eef2ff', color:'#0f3554', border:'1px solid #c7d2fe'}}
                       >
-                        Ver PDF
+                        Baixar PDF
                       </a>
                     )}
                     {uploadingId===s.id && <span style={{fontSize:12,color:'#1769aa'}}>Enviando...</span>}
