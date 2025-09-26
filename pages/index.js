@@ -281,8 +281,6 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [formVisible, setFormVisible] = useState(false);
-  const [showAlerts, setShowAlerts] = useState(true);
-  const [alertsAsToast, setAlertsAsToast] = useState(false);
   const [statusFilter, setStatusFilter] = useState('todos'); // 'todos' | 'vencidos' | 'vencendo'
   const [anexoFilter, setAnexoFilter] = useState('todos'); // 'todos' | 'com' | 'sem'
   const [formData, setFormData] = useState({
@@ -915,12 +913,6 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
         {seguros.length > 0 && (
           <button className="btn-secondary" onClick={() => fetchSeguros(order.column, order.ascending)}>⟳ Atualizar</button>
         )}
-        <button className="btn-secondary" onClick={() => setShowAlerts(a=>!a)}>{showAlerts? 'Ocultar alertas':'Mostrar alertas'}</button>
-        {(vencidos.length>0 || vencendo.length>0) && (
-          <button className="btn-secondary" onClick={() => setAlertsAsToast(t=>!t)}>
-            {alertsAsToast? 'Modo inline' : 'Modo toast'}
-          </button>
-        )}
         {vencidos.length>0 && (
           <button className="btn-secondary" onClick={exportVencidosCSV}>⬇️ Exportar vencidos</button>
         )}
@@ -1039,44 +1031,153 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
       )}
 
       {/* Alertas refinados – badges + blocos compactos antes da tabela */}
-      {showAlerts && !alertsAsToast && (vencidos.length > 0 || vencendo.length > 0) && (
+        {(vencidos.length > 0 || vencendo.length > 0) && (
         <div
-          className={`alerts-wrapper ${(!formVisible && (vencidos.length + vencendo.length) > 3) ? 'sticky' : ''}`}
+            className="alerts-wrapper"
+            style={{
+              background: '#1e293b',
+              border: '1px solid #475569',
+              borderRadius: 12,
+              padding: '16px 20px',
+              margin: '16px 0 24px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+            }}
           aria-live="polite"
           aria-atomic="true"
         >
-          <div className="alert-badges" style={{ marginBottom:8 }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              marginBottom: 16,
+              borderBottom: '1px solid #475569',
+              paddingBottom: 12
+            }}>
+              <div style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#f1f5f9',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}>
+                <span style={{fontSize: 20}}>⚠️</span>
+                Alertas de Vigência
+              </div>
+              <div style={{
+                display: 'flex',
+                gap: 12,
+                marginLeft: 'auto'
+              }}>
+                {vencidos.length > 0 && (
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '4px 12px',
+                    borderRadius: 20,
+                    background: '#7f1d1d',
+                    color: '#fecaca',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    border: '1px solid #991b1b'
+                  }}>
+                    <span style={{width: 6, height: 6, borderRadius: '50%', background: '#dc2626'}}></span>
+                    {vencidos.length} vencido{vencidos.length > 1 ? 's' : ''}
+                  </div>
+                )}
+                {vencendo.length > 0 && (
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '4px 12px',
+                    borderRadius: 20,
+                    background: '#92400e',
+                    color: '#fde68a',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    border: '1px solid #d97706'
+                  }}>
+                    <span style={{width: 6, height: 6, borderRadius: '50%', background: '#f59e0b'}}></span>
+                    {vencendo.length} em 30 dias
+                  </div>
+                )}
+              </div>
+            </div>
+          
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             {vencidos.length > 0 && (
-              <div className="alert-badge" title="Seguros vencidos">
-                <span className="dot red"></span>
-                {vencidos.length} vencido{vencidos.length > 1 ? 's' : ''}
+                <div style={{
+                  flex: 1,
+                  minWidth: 280,
+                  background: '#7f1d1d',
+                  border: '1px solid #991b1b',
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12
+                }}>
+                  <div style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#dc2626',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 18,
+                    flexShrink: 0
+                  }}>
+                    ⛔
+                  </div>
+                  <div>
+                    <div style={{ color: '#fecaca', fontWeight: 700, fontSize: 14, marginBottom: 2 }}>
+                      {vencidos.length} seguro{vencidos.length>1?'s':''} vencido{vencidos.length>1?'s':''}
+                    </div>
+                    <div style={{ color: '#f87171', fontSize: 12 }}>
+                      Renovar imediatamente para evitar descoberta
+                    </div>
+                  </div>
               </div>
             )}
             {vencendo.length > 0 && (
-              <div className="alert-badge" title="Seguros que vencem em até 30 dias">
-                <span className="dot yellow"></span>
-                {vencendo.length} em 30 dias
+                <div style={{
+                  flex: 1,
+                  minWidth: 280,
+                  background: '#92400e',
+                  border: '1px solid #d97706',
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12
+                }}>
+                  <div style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#f59e0b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 18,
+                    flexShrink: 0
+                  }}>
+                    ⏰
+                  </div>
+                  <div>
+                    <div style={{ color: '#fde68a', fontWeight: 700, fontSize: 14, marginBottom: 2 }}>
+                      {vencendo.length} vence{vencendo.length>1?'m':''} em 30 dias
+                    </div>
+                    <div style={{ color: '#fbbf24', fontSize: 12 }}>
+                      Programe contato com cliente antes do prazo
+                    </div>
+                  </div>
               </div>
             )}
           </div>
-          {vencidos.length > 0 && (
-            <div className="alert alert-vencidos">
-              <span style={{ fontSize:20 }}>⛔</span>
-              <div>
-                <strong>{vencidos.length} seguro{vencidos.length>1?'s':''} vencido{vencidos.length>1?'s':''}</strong><br />
-                <small>Renovar imediatamente para evitar descoberta.</small>
-              </div>
-            </div>
-          )}
-          {vencendo.length > 0 && (
-            <div className="alert alert-vencendo">
-              <span style={{ fontSize:20 }}>⚠️</span>
-              <div>
-                <strong>{vencendo.length} vence{vencendo.length>1?'m':''} em até 30 dias</strong><br />
-                <small>Programe contato com o cliente antes do prazo.</small>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -1254,7 +1355,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                     color: '#9ca3af',
                     padding: '10px 4px'
                   }}>
-                    {s.vigencia_inicio ? new Date(s.vigencia_inicio).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'}) : '—'}
+                    {s.vigencia_inicio ? new Date(s.vigencia_inicio).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—'}
                   </td>
                   <td style={{ padding: '10px 6px' }}>
                     {(() => {
@@ -1308,7 +1409,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                       ></span>
                     )}
                     <span style={{ paddingLeft: classeIndicador ? 12 : 0 }}>
-                      {s.vigencia_fim ? new Date(s.vigencia_fim).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'}) : '—'}
+                      {s.vigencia_fim ? new Date(s.vigencia_fim).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—'}
                     </span>
                   </td>
                   <td style={{ padding: '10px 8px' }}>
@@ -1401,29 +1502,6 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
 
   {loading && <div className="loading">Carregando...</div>}
 
-      {/* Toasts */}
-      {showAlerts && alertsAsToast && (vencidos.length>0 || vencendo.length>0) && (
-        <div className="toast-container" aria-live="polite" aria-atomic="true">
-          {vencidos.length>0 && (
-            <div className="toast vencidos">
-              <div style={{fontSize:22,lineHeight:1}}>⛔</div>
-              <div>
-                <h4>{vencidos.length} vencido{vencidos.length>1?'s':''}</h4>
-                <small>Renovar imediatamente.</small>
-              </div>
-            </div>
-          )}
-          {vencendo.length>0 && (
-            <div className="toast vencendo">
-              <div style={{fontSize:22,lineHeight:1}}>⚠️</div>
-              <div>
-                <h4>{vencendo.length} em 30 dias</h4>
-                <small>Planejar contato com cliente.</small>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
         </div>
         )}
         {section === 'cotacao' && (
