@@ -69,58 +69,60 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   const style = document.createElement('style');
   style.id = 'modern-seguros-styles';
   style.innerHTML = `
-  :root { --primary:#1976d2; --primaryAlt:#4fc3f7; --bg:#f3f8fc; --text:#222; }
-  [data-theme="dark"] { --bg:#0f1720; --text:#e6edf5; --primary:#64b5f6; --primaryAlt:#2196f3; }
-  body { font-family: 'Inter', Arial, sans-serif; background:var(--bg); color:var(--text); }
-  .app-shell { display:flex; min-height:100vh; }
-  .sidebar { width:240px; background:#0f3554; color:#e9f3fb; padding:22px 18px; position:sticky; top:0; height:100vh; box-shadow: 4px 0 16px #0d274422; }
-  .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.4px; color:#cfe8f7; }
-  .brand .logo { width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,#4fc3f7,#1976d2); box-shadow:0 6px 16px #1976d244; }
+  :root { --primary:#4fc3f7; --primaryAlt:#64b5f6; --bg:#0a0e13; --text:#e2e8f0; --card-bg:#1a202c; --sidebar-bg:#0f172a; }
+  body { font-family: 'Inter', Arial, sans-serif; background:var(--bg); color:var(--text); margin:0; padding:0; }
+  .app-shell { display:flex; min-height:100vh; background:var(--bg); }
+  .sidebar { width:240px; background:var(--sidebar-bg); color:#e2e8f0; padding:22px 18px; position:sticky; top:0; height:100vh; box-shadow: 4px 0 16px rgba(0,0,0,0.3); border-right:1px solid #334155; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.4px; color:#f1f5f9; }
+  .brand .logo { width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,#4fc3f7,#2563eb); box-shadow:0 6px 16px rgba(79,195,247,0.3); }
   .nav { margin-top:16px; display:flex; flex-direction:column; gap:6px; }
-  .nav a { color:#cfe0ee; text-decoration:none; padding:9px 10px; border-radius:8px; font-weight:600; display:flex; align-items:center; gap:8px; }
-  .nav a.active, .nav a:hover { background:#13476f; color:#fff; }
-  .content { flex:1; padding:26px; }
-  .container-seguros { max-width:1100px; margin:0 auto; background:#fff; border-radius:20px; padding:26px 26px 36px; box-shadow:0 4px 28px #1769aa22; animation:fadeIn .55s ease-out; }
+  .nav a { color:#cbd5e1; text-decoration:none; padding:9px 10px; border-radius:8px; font-weight:600; display:flex; align-items:center; gap:8px; transition:all 0.2s; }
+  .nav a.active, .nav a:hover { background:#1e293b; color:#f1f5f9; }
+  .content { flex:1; padding:26px; background:var(--bg); }
+  .container-seguros { max-width:1400px; margin:0 auto; background:var(--card-bg); border-radius:20px; padding:26px 26px 36px; box-shadow:0 4px 28px rgba(0,0,0,0.4); animation:fadeIn .55s ease-out; border:1px solid #334155; }
     @keyframes fadeIn { from {opacity:0; transform:translateY(16px);} to {opacity:1; transform:translateY(0);} }
-  .btn-main { background:linear-gradient(92deg,var(--primaryAlt),var(--primary)); color:#fff; border:none; border-radius:10px; padding:11px 22px; font-weight:600; cursor:pointer; box-shadow:0 3px 10px #1976d244; display:inline-flex; gap:6px; align-items:center; transition:.25s; }
-    .btn-main:hover { filter:brightness(1.05); transform:translateY(-2px); box-shadow:0 6px 18px #1976d255; }
-    .btn-secondary { background:#e6eef7; color:#1769aa; border:none; border-radius:8px; padding:9px 18px; font-weight:500; cursor:pointer; transition:.25s; }
-    .btn-secondary:hover { background:#d2e4f7; }
+  .btn-main { background:linear-gradient(92deg,var(--primaryAlt),var(--primary)); color:#0a0e13; border:none; border-radius:10px; padding:11px 22px; font-weight:700; cursor:pointer; box-shadow:0 3px 10px rgba(79,195,247,0.3); display:inline-flex; gap:6px; align-items:center; transition:.25s; }
+    .btn-main:hover { filter:brightness(1.1); transform:translateY(-2px); box-shadow:0 6px 18px rgba(79,195,247,0.4); }
+    .btn-secondary { background:#374151; color:#e2e8f0; border:1px solid #4b5563; border-radius:8px; padding:9px 18px; font-weight:500; cursor:pointer; transition:.25s; }
+    .btn-secondary:hover { background:#4b5563; border-color:#6b7280; }
     .search-input { 
       width: 100%; 
       padding: 12px 16px 12px 44px; 
-      border: 1px solid #dce7f0; 
+      border: 1px solid #4b5563; 
       border-radius: 10px; 
       font-size: 14px; 
-      background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236a8aa2'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat 16px center;
+      background: #374151 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat 16px center;
       background-size: 20px 20px;
       transition: all 0.2s ease;
       margin: 0 0 4px 0;
+      color: #e2e8f0;
     }
+    .search-input::placeholder { color: #9ca3af; }
     .search-input:focus { 
       outline: none; 
-      border-color: #1976d2; 
-      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-      background-color: #fbfcfe;
+      border-color: #4fc3f7; 
+      box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
+      background-color: #4b5563;
     }
   .alerts-wrapper { margin:14px 0 2px; display:flex; flex-direction:column; gap:8px; position:relative; }
   .alerts-wrapper.sticky { position:sticky; top:0; z-index:30; padding-top:4px; }
-  .alert { border-radius:12px; padding:12px 16px; font-weight:500; display:flex; gap:10px; align-items:center; box-shadow:0 3px 14px #0d27440f,0 1px 2px #0d274415; animation:fadeIn .5s; line-height:1.25; backdrop-filter:blur(6px); }
+  .alert { border-radius:12px; padding:12px 16px; font-weight:500; display:flex; gap:10px; align-items:center; box-shadow:0 3px 14px rgba(0,0,0,0.2),0 1px 2px rgba(0,0,0,0.3); animation:fadeIn .5s; line-height:1.25; backdrop-filter:blur(6px); }
   .alert strong { font-weight:700; }
-  .alert small { font-size:12px; opacity:.7; font-weight:400; }
-  .alert-vencidos { background:linear-gradient(125deg,#ffe3e3,#ffcaca); color:#8f2222; border:1px solid #e05a5a; }
-  .alert-vencendo { background:linear-gradient(125deg,#fff4c9,#ffeaa3); color:#6d5a00; border:1px solid #d2b800; }
+  .alert small { font-size:12px; opacity:.8; font-weight:400; }
+  .alert-vencidos { background:linear-gradient(125deg,#7f1d1d,#991b1b); color:#fecaca; border:1px solid #dc2626; }
+  .alert-vencendo { background:linear-gradient(125deg,#78350f,#92400e); color:#fde68a; border:1px solid #f59e0b; }
   .alert-badges { display:flex; gap:10px; flex-wrap:wrap; }
-  .alert-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 10px 5px 8px; background:#fff; border-radius:30px; font-size:12px; font-weight:600; color:#1769aa; box-shadow:0 2px 6px #1769aa22; }
+  .alert-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 10px 5px 8px; background:#374151; border-radius:30px; font-size:12px; font-weight:600; color:#4fc3f7; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:1px solid #4b5563; }
   .alert-badge span.dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
   .alert-badge .dot.red { background:#e53935; box-shadow:0 0 0 2px #ffffffcc,0 0 8px #e5393580; }
   .alert-badge .dot.yellow { background:#ffd600; box-shadow:0 0 0 2px #ffffffcc,0 0 8px #ffd60080; }
-    .form-wrapper { background:#f5faff; border:1px solid #dde8f1; border-radius:16px; padding:22px 22px 10px; margin:24px 0 30px; box-shadow:0 4px 18px #1976d210; animation:scaleIn .45s ease; }
+    .form-wrapper { background:#2d3748; border:1px solid #4a5568; border-radius:16px; padding:22px 22px 10px; margin:24px 0 30px; box-shadow:0 4px 18px rgba(0,0,0,0.3); animation:scaleIn .45s ease; }
     @keyframes scaleIn { from {opacity:0; transform:translateY(-14px) scale(.97);} to {opacity:1; transform:translateY(0) scale(1);} }
     .form-grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-bottom:4px; }
-    .form-grid label { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#4b6980; display:block; margin-bottom:4px; }
-    .form-grid input { width:100%; padding:9px 10px; border:1.4px solid #b7c9da; border-radius:8px; background:#fff; font-size:14px; transition:.22s; }
-    .form-grid input:focus { border-color:#1976d2; box-shadow:0 0 0 3px #4fc3f722; outline:none; }
+    .form-grid label { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#cbd5e1; display:block; margin-bottom:4px; }
+    .form-grid input { width:100%; padding:9px 10px; border:1.4px solid #4a5568; border-radius:8px; background:#374151; font-size:14px; transition:.22s; color:#e2e8f0; }
+    .form-grid input::placeholder { color:#9ca3af; }
+    .form-grid input:focus { border-color:#4fc3f7; box-shadow:0 0 0 3px rgba(79,195,247,0.2); outline:none; background:#4b5563; }
     .actions-row { display:flex; gap:12px; margin-top:14px; }
     .ordenacao-bar { display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 2px; }
     /* Ordenação refinada */
@@ -130,15 +132,15 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
       gap: 12px; 
       margin: 12px 0 8px; 
       padding: 12px 16px; 
-      background: #ffffff; 
-      border: 1px solid #e1e8ed; 
+      background: #374151; 
+      border: 1px solid #4b5563; 
       border-radius: 8px; 
-      box-shadow: 0 1px 4px rgba(15, 53, 84, 0.04);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
     .sort-label { 
       font-size: 12px; 
       font-weight: 600; 
-      color: #4b6980; 
+      color: #cbd5e1; 
       text-transform: uppercase; 
       letter-spacing: 0.5px; 
       margin-right: 8px;
@@ -146,63 +148,65 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     .ordenacao-btn { 
       padding: 6px 12px; 
       border-radius: 6px; 
-      background: #f8fafc; 
-      color: #4b6980; 
-      border: 1px solid #e1e8ed; 
+      background: #4b5563; 
+      color: #cbd5e1; 
+      border: 1px solid #6b7280; 
       font-size: 12px; 
       font-weight: 500; 
       cursor: pointer; 
       transition: all 0.2s ease;
     }
     .ordenacao-btn.active { 
-      background: #1976d2; 
-      color: #ffffff; 
-      border-color: #1976d2; 
+      background: #4fc3f7; 
+      color: #0a0e13; 
+      border-color: #4fc3f7; 
     }
     .ordenacao-btn:not(.active):hover { 
-      background: #f0f6fc; 
-      border-color: #b8d4f0; 
+      background: #6b7280; 
+      border-color: #9ca3af; 
     }
     .sort-info { 
       font-size: 11px; 
-      color: #6a8aa2; 
+      color: #9ca3af; 
       font-weight: 500; 
       margin-left: auto;
     }
-    .order-info { font-size:13px; font-style:italic; color:#1769aa; margin-top:4px; }
-    table.seguros { width:100%; border-collapse:separate; border-spacing:0 6px; margin-top:14px; }
-    table.seguros thead th { text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.7px; padding:10px 12px; background:#e6eef7; color:#1769aa; font-weight:700; }
-    table.seguros tbody tr { background:#ffffff; box-shadow:0 2px 10px #1769aa17; transition:.25s; }
-    table.seguros tbody tr:hover { transform:translateY(-3px); box-shadow:0 6px 18px #1769aa25; }
-    table.seguros tbody td { padding:10px 12px; border-top:1px solid #eef3f7; border-bottom:1px solid #eef3f7; font-size:14px; }
-    table.seguros tbody tr td:first-child { border-left:1px solid #eef3f7; border-top-left-radius:10px; border-bottom-left-radius:10px; }
-    table.seguros tbody tr td:last-child { border-right:1px solid #eef3f7; border-top-right-radius:10px; border-bottom-right-radius:10px; }
+    .order-info { font-size:13px; font-style:italic; color:#4fc3f7; margin-top:4px; }
+    table.seguros { width:100%; border-collapse:separate; border-spacing:0 6px; margin-top:14px; overflow-x:auto; }
+    table.seguros thead th { text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.7px; padding:10px 8px; background:#374151; color:#4fc3f7; font-weight:700; border:1px solid #4b5563; white-space:nowrap; }
+    table.seguros thead th:first-child { border-left:1px solid #4b5563; border-top-left-radius:8px; border-bottom-left-radius:8px; }
+    table.seguros thead th:last-child { border-right:1px solid #4b5563; border-top-right-radius:8px; border-bottom-right-radius:8px; }
+    table.seguros tbody tr { background:#2d3748; box-shadow:0 2px 10px rgba(0,0,0,0.3); transition:.25s; border:1px solid #4a5568; }
+    table.seguros tbody tr:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.4); }
+    table.seguros tbody td { padding:8px 6px; font-size:13px; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; }
+    table.seguros tbody tr td:first-child { border-top-left-radius:8px; border-bottom-left-radius:8px; }
+    table.seguros tbody tr td:last-child { border-top-right-radius:8px; border-bottom-right-radius:8px; }
     .indicador { width:14px; height:14px; display:inline-block; border-radius:50%; margin-right:6px; box-shadow:0 0 0 2px #ffffffaa; position:relative; top:2px; }
     .indicador.vencido { background:#e53935; animation:pulseRed 1.2s infinite alternate; border:2px solid #b71c1c; }
     .indicador.vencendo { background:#ffd600; animation:pulseYellow 1.2s infinite alternate; border:2px solid #bfa100; }
     @keyframes pulseRed { from { box-shadow:0 0 6px #e5393555;} to { box-shadow:0 0 14px #e53935aa;} }
     @keyframes pulseYellow { from { box-shadow:0 0 6px #ffd60055;} to { box-shadow:0 0 14px #ffd600aa;} }
-    .table-actions { display:flex; gap:8px; }
-    .mini-btn { background:#e6eef7; color:#1769aa; border:none; padding:6px 10px; font-size:12px; border-radius:7px; cursor:pointer; font-weight:500; transition:.25s; }
-    .mini-btn:hover { background:#1976d2; color:#fff; }
-    .mini-btn.danger { background:#ffe5e5; color:#b42222; }
-    .mini-btn.danger:hover { background:#d63030; color:#fff; }
-    .loading { color:#1769aa; font-weight:500; margin-top:18px; }
+    .table-actions { display:flex; gap:4px; }
+    .mini-btn { background:#4b5563; color:#cbd5e1; border:1px solid #6b7280; padding:4px 8px; font-size:11px; border-radius:6px; cursor:pointer; font-weight:500; transition:.25s; white-space:nowrap; }
+    .mini-btn:hover { background:#6b7280; color:#f1f5f9; }
+    .mini-btn.danger { background:#7f1d1d; color:#fecaca; border-color:#991b1b; }
+    .mini-btn.danger:hover { background:#991b1b; color:#fff; }
+    .loading { color:#4fc3f7; font-weight:500; margin-top:18px; }
     /* --- Filtros refinados --- */
     .filters-section { 
-      background: linear-gradient(180deg, #fbfcfe, #f8fafc); 
-      border: 1px solid #e1e8ed; 
+      background: #374151; 
+      border: 1px solid #4b5563; 
       border-radius: 12px; 
       padding: 16px 20px; 
       margin: 16px 0; 
-      box-shadow: 0 2px 8px rgba(15, 53, 84, 0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     .filters-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     .filter-group { display: flex; align-items: center; gap: 8px; }
     .filter-label { 
       font-size: 13px; 
       font-weight: 600; 
-      color: #4b6980; 
+      color: #cbd5e1; 
       text-transform: uppercase; 
       letter-spacing: 0.5px; 
       margin-right: 4px;
@@ -210,49 +214,64 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     .chip-filter { 
       padding: 7px 16px; 
       border-radius: 20px; 
-      background: #ffffff; 
-      color: #4b6980; 
+      background: #4b5563; 
+      color: #cbd5e1; 
       font-size: 13px; 
       font-weight: 500; 
       cursor: pointer; 
-      border: 1px solid #dce7f0; 
+      border: 1px solid #6b7280; 
       transition: all 0.2s ease;
       white-space: nowrap;
     }
     .chip-filter.active { 
-      background: #1976d2; 
-      color: #ffffff; 
-      border-color: #1976d2; 
-      box-shadow: 0 2px 6px rgba(25, 118, 210, 0.25);
+      background: #4fc3f7; 
+      color: #0a0e13; 
+      border-color: #4fc3f7; 
+      box-shadow: 0 2px 6px rgba(79, 195, 247, 0.25);
     }
     .chip-filter:not(.active):hover { 
-      background: #f0f6fc; 
-      border-color: #b8d4f0; 
+      background: #6b7280; 
+      border-color: #9ca3af; 
       transform: translateY(-1px);
     }
-    .filter-divider { width: 1px; height: 20px; background: #dce7f0; margin: 0 4px; }
+    .filter-divider { width: 1px; height: 20px; background: #6b7280; margin: 0 4px; }
     .toast-container { position:fixed; right:24px; bottom:24px; display:flex; flex-direction:column; gap:10px; max-width:300px; z-index:500; }
-    .toast { border-radius:14px; padding:14px 16px 14px 14px; font-size:14px; display:flex; gap:10px; align-items:flex-start; box-shadow:0 6px 28px #0d274433; background:#fff; border:1px solid #e2e9f0; animation:slideIn .5s ease; }
+    .toast { border-radius:14px; padding:14px 16px 14px 14px; font-size:14px; display:flex; gap:10px; align-items:flex-start; box-shadow:0 6px 28px rgba(0,0,0,0.4); background:#2d3748; border:1px solid #4a5568; animation:slideIn .5s ease; }
     @keyframes slideIn { from {opacity:0; transform:translateY(16px) scale(.96);} to {opacity:1; transform:translateY(0) scale(1);} }
-    .toast.vencidos { border-left:6px solid #e53935; }
-    .toast.vencendo { border-left:6px solid #ffd600; }
-    .toast h4 { margin:0 0 4px; font-size:14px; font-weight:700; }
-    .toast small { font-size:11px; opacity:.75; line-height:1.3; }
+    .toast.vencidos { border-left:6px solid #dc2626; }
+    .toast.vencendo { border-left:6px solid #f59e0b; }
+    .toast h4 { margin:0 0 4px; font-size:14px; font-weight:700; color:#e2e8f0; }
+    .toast small { font-size:11px; opacity:.8; line-height:1.3; color:#cbd5e1; }
   /* Dashboard cards */
-  .kpis { display:grid; grid-template-columns:repeat(4, minmax(160px,1fr)); gap:12px; margin:14px 0 8px; }
-  .kpi { background:linear-gradient(180deg,#ffffff,#f6fbff); border:1px solid #e2edf7; border-radius:14px; padding:14px; box-shadow:0 4px 16px #1769aa13; }
-  .kpi h3 { margin:0; font-size:12px; color:#4b6980; text-transform:uppercase; letter-spacing:.5px; }
-  .kpi .value { margin-top:6px; font-size:22px; font-weight:800; color:#0f3554; }
-  .kpi .sub { font-size:12px; color:#6a8aa2; margin-top:2px; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin:14px 0 8px; }
+  .kpi { background:#374151; border:1px solid #4b5563; border-radius:14px; padding:14px; box-shadow:0 4px 16px rgba(0,0,0,0.2); }
+  .kpi h3 { margin:0; font-size:12px; color:#cbd5e1; text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .value { margin-top:6px; font-size:22px; font-weight:800; color:#4fc3f7; }
+  .kpi .sub { font-size:12px; color:#9ca3af; margin-top:2px; }
     /* Status pill */
     .status-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
-    .status-ativo { background:#e6f5ec; color:#0a7a3e; border:1px solid #b9e3c9; }
-    .status-vencendo { background:#fff7d6; color:#7a5b00; border:1px solid #ead37b; }
-    .status-vencido { background:#ffe6e6; color:#8b1b1b; border:1px solid #ef9a9a; }
+    .status-ativo { background:#065f46; color:#6ee7b7; border:1px solid #059669; }
+    .status-vencendo { background:#92400e; color:#fde68a; border:1px solid #d97706; }
+    .status-vencido { background:#7f1d1d; color:#fecaca; border:1px solid #dc2626; }
     /* Validação de formulário */
-    .form-error { color: #e53935; font-size: 12px; margin-top: 4px; display: block; }
-    .input-error { border-color: #e53935 !important; box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.1); }
-    .input-error:focus { border-color: #e53935 !important; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2); }
+    .form-error { color: #fca5a5; font-size: 12px; margin-top: 4px; display: block; }
+    .input-error { border-color: #dc2626 !important; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1); }
+    .input-error:focus { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2); }
+    
+    /* Responsividade para tabela */
+    .table-container { overflow-x: auto; margin: 16px -26px; padding: 0 26px; }
+    @media (max-width: 1200px) {
+      table.seguros thead th, table.seguros tbody td { padding: 6px 4px; font-size: 12px; }
+      .container-seguros { padding: 20px 16px 30px; }
+      .content { padding: 16px; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .sidebar { width: 200px; }
+      .filters-row { flex-direction: column; align-items: stretch; }
+      .filter-group { justify-content: center; }
+      table.seguros thead th, table.seguros tbody td { font-size: 11px; padding: 4px 2px; }
+    }
     `;
   document.head.appendChild(style);
 }export default function Home() {
@@ -744,10 +763,11 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
           boxSizing: 'border-box'
         }}>
           <div style={{ 
-            background: '#fff', 
+            background: '#1a202c', 
             borderRadius: 20, 
             padding: 40, 
-            boxShadow: '0 4px 28px #1769aa22', 
+            boxShadow: '0 4px 28px rgba(0,0,0,0.4)', 
+            border: '1px solid #334155',
             maxWidth: 400, 
             width: '100%'
           }}>
@@ -755,12 +775,12 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
               <div className="brand" style={{ justifyContent: 'center', fontSize: 24, marginBottom: 10 }}>
                 <div className="logo" /> <span>Saulari Seguros</span>
               </div>
-              <p style={{ color: '#4b6980', margin: 0 }}>Faça login para acessar o sistema</p>
+              <p style={{ color: '#cbd5e1', margin: 0 }}>Faça login para acessar o sistema</p>
             </div>
             
             <form onSubmit={(e)=>{ e.preventDefault(); signIn(); }} style={{ display: 'grid', gap: 16 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#4b6980', display: 'block', marginBottom: 6 }}>E-mail</label>
+                <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#cbd5e1', display: 'block', marginBottom: 6 }}>E-mail</label>
                 <input 
                   className="search-input"
                   type="email"
@@ -772,10 +792,10 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                 />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#4b6980', display: 'block', marginBottom: 6 }}>Senha</label>
+                <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#cbd5e1', display: 'block', marginBottom: 6 }}>Senha</label>
                 <input 
                   className="search-input"
-                  type="password" 
+                  type="password"
                   value={authPassword} 
                   onChange={(e)=>setAuthPassword(e.target.value)} 
                   placeholder="••••••••"
@@ -791,7 +811,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                   Criar conta
                 </button>
               </div>
-              <small style={{ color: '#4b6980', textAlign: 'center', fontSize: 12 }}>
+              <small style={{ color: '#9ca3af', textAlign: 'center', fontSize: 12 }}>
                 Obs.: Criação de conta pode exigir confirmação por e-mail
               </small>
             </form>
@@ -809,20 +829,20 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
           <NavLink label="Relatórios" icon="📈" value="relatorios" />
           <NavLink label="Configurações" icon="⚙️" value="config" />
         </nav>
-        <div style={{marginTop:'auto', opacity:.9, fontSize:12, paddingTop:10, borderTop:'1px solid #13476f'}}>
+        <div style={{marginTop:'auto', opacity:.9, fontSize:12, paddingTop:10, borderTop:'1px solid #4b5563'}}>
           <div style={{marginBottom:6}}>
-            <div style={{fontWeight:700}}>Conectado</div>
-            <div style={{opacity:.9}}>{currentUser.email}</div>
+            <div style={{fontWeight:700, color:'#f1f5f9'}}>Conectado</div>
+            <div style={{opacity:.9, color:'#cbd5e1'}}>{currentUser.email}</div>
             <button className="mini-btn" style={{marginTop:8}} onClick={signOut}>Sair</button>
           </div>
-          © {new Date().getFullYear()} Saulari
+          <div style={{color:'#9ca3af'}}>© {new Date().getFullYear()} Saulari</div>
         </div>
       </aside>
       <main className="content">
         {section === 'dashboard' && (
           <div className="container-seguros">
-            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📊 Dashboard</h1>
-            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Visão geral dos seguros e indicadores.</p>
+            <h1 style={{ color: '#4fc3f7', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📊 Dashboard</h1>
+            <p style={{ margin: '6px 0 22px', color: '#cbd5e1', fontSize: 14 }}>Visão geral dos seguros e indicadores.</p>
             {/* Cards de resumo */}
             <section className="kpis" aria-label="Resumo">
               <div className="kpi">
@@ -847,17 +867,17 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
               </div>
             </section>
             {/* Gráfico de exemplo (placeholder) */}
-            <div style={{marginTop:32, background:'#f6fbff', borderRadius:12, padding:24, textAlign:'center', color:'#1976d2', fontWeight:600}}>
+            <div style={{marginTop:32, background:'#374151', borderRadius:12, padding:24, textAlign:'center', color:'#4fc3f7', fontWeight:600, border:'1px solid #4b5563'}}>
               [Gráfico de prêmios por mês aqui]
               <br />
-              <span style={{fontSize:13, color:'#4b6980', fontWeight:400}}>Integre uma lib como recharts/chart.js para gráficos reais.</span>
+              <span style={{fontSize:13, color:'#cbd5e1', fontWeight:400}}>Integre uma lib como recharts/chart.js para gráficos reais.</span>
             </div>
           </div>
         )}
         {section === 'seguros' && (
           <div className="container-seguros" id="seguros">
-            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📋 Seguros</h1>
-            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gestão centralizada dos contratos e vigências.</p>
+            <h1 style={{ color: '#4fc3f7', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📋 Seguros</h1>
+            <p style={{ margin: '6px 0 22px', color: '#cbd5e1', fontSize: 14 }}>Gestão centralizada dos contratos e vigências.</p>
 
           {/* Cards de resumo */}
           <section className="kpis" aria-label="Resumo">
@@ -913,7 +933,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
 
       {formVisible && (
         <form className="form-wrapper" onSubmit={salvarSeguro}>
-          <h2 style={{ margin: '0 0 14px', color: '#1976d2', fontSize: 22, fontWeight: 700 }}>
+          <h2 style={{ margin: '0 0 14px', color: '#4fc3f7', fontSize: 22, fontWeight: 700 }}>
             {formData.id ? 'Editar Seguro' : 'Novo Seguro'}
           </h2>
           <div className="form-grid">
@@ -1120,67 +1140,49 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
       </div>
 
       {/* Tabela com container responsivo */}
-      <div style={{ 
-        overflowX: 'auto', 
-        marginTop: 16,
-        border: '1px solid #e2e8f0',
-        borderRadius: 12,
-        backgroundColor: '#fff',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        WebkitOverflowScrolling: 'touch'
-      }}>
-        <table className="seguros" style={{ minWidth: '1400px', margin: 0, borderSpacing: '0' }}>
+      <div className="table-container">
+        <table className="seguros" style={{ minWidth: '1200px', width: '100%' }}>
           <thead>
             <tr>
-              <th style={{width: 200, minWidth: 200, padding: '16px 12px', position: 'sticky', left: 0, background: '#1e293b', zIndex: 5}}>Cliente</th>
-              <th style={{width: 140, minWidth: 140, padding: '16px 12px'}}>CPF</th>
-              <th style={{width: 150, minWidth: 150, padding: '16px 12px'}}>Telefone</th>
-              <th style={{width: 160, minWidth: 160, padding: '16px 12px'}}>Seguro</th>
-              <th style={{width: 150, minWidth: 150, padding: '16px 12px'}}>Seguradora</th>
-              <th style={{width: 120, minWidth: 120, textAlign: 'right', padding: '16px 12px'}}>Prêmio</th>
-              <th style={{width: 110, minWidth: 110, padding: '16px 12px'}}>Início</th>
-              <th style={{width: 120, minWidth: 120, padding: '16px 12px'}}>Status</th>
-              <th style={{width: 110, minWidth: 110, padding: '16px 12px'}}>Fim</th>
-              <th style={{width: 220, minWidth: 220, padding: '16px 12px'}}>Ações</th>
+              <th style={{width: '16%', minWidth: 180, padding: '12px 8px'}}>Cliente</th>
+              <th style={{width: '12%', minWidth: 120, padding: '12px 6px'}}>CPF</th>
+              <th style={{width: '12%', minWidth: 120, padding: '12px 6px'}}>Telefone</th>
+              <th style={{width: '14%', minWidth: 140, padding: '12px 6px'}}>Seguro</th>
+              <th style={{width: '12%', minWidth: 120, padding: '12px 6px'}}>Seguradora</th>
+              <th style={{width: '10%', minWidth: 100, textAlign: 'right', padding: '12px 6px'}}>Prêmio</th>
+              <th style={{width: '8%', minWidth: 80, padding: '12px 4px'}}>Início</th>
+              <th style={{width: '10%', minWidth: 100, padding: '12px 6px'}}>Status</th>
+              <th style={{width: '8%', minWidth: 80, padding: '12px 4px'}}>Fim</th>
+              <th style={{width: '18%', minWidth: 180, padding: '12px 8px'}}>Ações</th>
             </tr>
           </thead>
           <tbody>
-            {segurosFiltrados.map((s, index) => {
+            {segurosFiltrados.map((s) => {
               const fim = new Date(s.vigencia_fim);
               const diff = (fim - hoje) / (1000 * 60 * 60 * 24);
               let classeIndicador = '';
               if (fim < hoje) classeIndicador = 'vencido'; else if (diff >= 0 && diff <= 30) classeIndicador = 'vencendo';
               
-              const rowStyle = {
-                borderBottom: '1px solid #f1f5f9',
-                background: index % 2 === 0 ? '#fff' : '#fafbfc'
-              };
-              
               return (
-                <tr key={s.id} style={rowStyle} onMouseEnter={(e) => e.target.closest('tr').style.background = '#f1f5f9'} onMouseLeave={(e) => e.target.closest('tr').style.background = index % 2 === 0 ? '#fff' : '#fafbfc'}>
+                <tr key={s.id}>
                   <td style={{
                     fontWeight: 600, 
-                    maxWidth: 200, 
+                    maxWidth: 180, 
                     overflow: 'hidden', 
                     textOverflow: 'ellipsis', 
                     whiteSpace: 'nowrap',
-                    padding: '14px 12px',
-                    position: 'sticky',
-                    left: 0,
-                    background: 'inherit',
-                    zIndex: 1,
-                    borderRight: '1px solid #e2e8f0'
+                    padding: '10px 8px'
                   }} title={s.cliente_nome}>
-                    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
                       <div style={{
-                        width: 32,
-                        height: 32,
+                        width: 28,
+                        height: 28,
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                        background: 'linear-gradient(135deg, #4fc3f7, #2563eb)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#fff',
+                        color: '#0a0e13',
                         fontSize: 12,
                         fontWeight: 700,
                         flexShrink: 0
@@ -1194,34 +1196,34 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                   </td>
                   <td style={{
                     fontFamily: 'Monaco, Consolas, monospace', 
-                    fontSize: 13,
-                    padding: '14px 12px',
-                    color: '#475569'
+                    fontSize: 12,
+                    padding: '10px 6px',
+                    color: '#cbd5e1'
                   }}>
                     {validationUtils.formatCPF(s.cliente_cpf || '')}
                   </td>
                   <td style={{
                     fontFamily: 'Monaco, Consolas, monospace', 
-                    fontSize: 13,
-                    padding: '14px 12px',
-                    color: '#475569'
+                    fontSize: 12,
+                    padding: '10px 6px',
+                    color: '#cbd5e1'
                   }}>
-                    {validationUtils.formatPhone(s.cliente_numero || '') || <span style={{color: '#94a3b8'}}>—</span>}
+                    {validationUtils.formatPhone(s.cliente_numero || '') || <span style={{color: '#6b7280'}}>—</span>}
                   </td>
                   <td style={{
-                    maxWidth: 160, 
+                    maxWidth: 140, 
                     overflow: 'hidden', 
                     textOverflow: 'ellipsis', 
                     whiteSpace: 'nowrap',
-                    padding: '14px 12px'
+                    padding: '10px 6px'
                   }} title={s.tipo_seguro}>
-                    <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
                       <span style={{
                         display: 'inline-block',
-                        width: 6,
-                        height: 6,
+                        width: 4,
+                        height: 4,
                         borderRadius: '50%',
-                        background: '#3b82f6',
+                        background: '#4fc3f7',
                         flexShrink: 0
                       }}></span>
                       {s.tipo_seguro}
@@ -1229,55 +1231,53 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                   </td>
                   <td style={{
                     fontWeight: 600, 
-                    maxWidth: 150, 
+                    maxWidth: 120, 
                     overflow: 'hidden', 
                     textOverflow: 'ellipsis', 
                     whiteSpace: 'nowrap',
-                    padding: '14px 12px',
-                    color: '#1e40af'
+                    padding: '10px 6px',
+                    color: '#4fc3f7'
                   }} title={s.seguradora}>
                     {s.seguradora}
                   </td>
                   <td style={{
                     textAlign: 'right', 
                     fontWeight: 700, 
-                    color: '#059669',
-                    fontSize: 14,
-                    padding: '14px 12px'
+                    color: '#10b981',
+                    fontSize: 13,
+                    padding: '10px 6px'
                   }}>
                     R$ {validationUtils.formatCurrency(s.premio?.toString() || '0')}
                   </td>
                   <td style={{
-                    fontSize: 13, 
-                    color: '#64748b',
-                    padding: '14px 12px'
+                    fontSize: 12, 
+                    color: '#9ca3af',
+                    padding: '10px 4px'
                   }}>
-                    {s.vigencia_inicio ? new Date(s.vigencia_inicio).toLocaleDateString('pt-BR') : '—'}
+                    {s.vigencia_inicio ? new Date(s.vigencia_inicio).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'}) : '—'}
                   </td>
-                  <td style={{ padding: '14px 12px' }}>
+                  <td style={{ padding: '10px 6px' }}>
                     {(() => {
                       const st = statusDoSeguro(s);
                       const statusConfig = {
-                        ativo: { color: '#065f46', bg: 'linear-gradient(135deg, #d1fae5, #a7f3d0)', icon: '✓', border: '#10b981' },
-                        vencendo: { color: '#92400e', bg: 'linear-gradient(135deg, #fef3c7, #fde68a)', icon: '⚠', border: '#f59e0b' },
-                        vencido: { color: '#991b1b', bg: 'linear-gradient(135deg, #fee2e2, #fca5a5)', icon: '✕', border: '#ef4444' }
+                        ativo: { color: '#6ee7b7', bg: '#065f46', icon: '✓' },
+                        vencendo: { color: '#fde68a', bg: '#92400e', icon: '⚠' },
+                        vencido: { color: '#fecaca', bg: '#7f1d1d', icon: '✕' }
                       };
                       const config = statusConfig[st];
                       return (
                         <span style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: 6,
-                          padding: '6px 12px',
-                          borderRadius: 20,
-                          fontSize: 12,
+                          gap: 4,
+                          padding: '4px 8px',
+                          borderRadius: 12,
+                          fontSize: 11,
                           fontWeight: 700,
                           color: config.color,
                           background: config.bg,
                           textTransform: 'uppercase',
-                          letterSpacing: 0.5,
-                          border: `1px solid ${config.border}`,
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          letterSpacing: 0.3
                         }}>
                           {config.icon} {st}
                         </span>
@@ -1285,9 +1285,9 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                     })()}
                   </td>
                   <td style={{
-                    fontSize: 13, 
+                    fontSize: 12, 
                     fontWeight: 600,
-                    padding: '14px 12px',
+                    padding: '10px 4px',
                     position: 'relative'
                   }}>
                     {classeIndicador && (
@@ -1295,137 +1295,86 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                         className={`indicador ${classeIndicador}`}
                         style={{
                           position: 'absolute',
-                          left: 8,
+                          left: 4,
                           top: '50%',
                           transform: 'translateY(-50%)',
-                          width: 4,
-                          height: 24,
-                          borderRadius: 3,
+                          width: 3,
+                          height: 20,
+                          borderRadius: 2,
                           background: classeIndicador === 'vencido' 
-                            ? 'linear-gradient(180deg, #dc2626, #b91c1c)' 
-                            : 'linear-gradient(180deg, #f59e0b, #d97706)',
-                          boxShadow: classeIndicador === 'vencido' 
-                            ? '0 0 8px rgba(220, 38, 38, 0.5)' 
-                            : '0 0 8px rgba(245, 158, 11, 0.5)'
+                            ? '#dc2626' 
+                            : '#f59e0b'
                         }}
                       ></span>
                     )}
-                    <span style={{ paddingLeft: classeIndicador ? 16 : 0 }}>
-                      {s.vigencia_fim ? new Date(s.vigencia_fim).toLocaleDateString('pt-BR') : '—'}
+                    <span style={{ paddingLeft: classeIndicador ? 12 : 0 }}>
+                      {s.vigencia_fim ? new Date(s.vigencia_fim).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'}) : '—'}
                     </span>
                   </td>
-                  <td style={{ padding: '14px 12px' }}>
-                    <div style={{
-                      display: 'flex', 
-                      flexWrap: 'wrap', 
-                      gap: 6, 
-                      alignItems: 'center',
-                      justifyContent: 'flex-start'
-                    }}>
+                  <td style={{ padding: '10px 8px' }}>
+                    <div className="table-actions">
                       <button 
                         className="mini-btn" 
                         onClick={() => editarSeguro(s)} 
-                        style={{
-                          fontSize: 11,
-                          padding: '6px 10px',
-                          background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
-                          color: '#1d4ed8',
-                          border: '1px solid #bfdbfe',
-                          borderRadius: 6,
-                          fontWeight: 600
-                        }}
                         title="Editar seguro"
                       >
-                        ✏️ Editar
+                        ✏️
                       </button>
                       
                       <button 
                         className="mini-btn danger" 
                         onClick={() => excluirSeguro(s.id)} 
-                        style={{
-                          fontSize: 11,
-                          padding: '6px 10px',
-                          background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
-                          color: '#dc2626',
-                          border: '1px solid #fecaca',
-                          borderRadius: 6,
-                          fontWeight: 600
-                        }}
                         title="Excluir seguro"
                       >
-                        🗑️ Excluir
+                        🗑️
                       </button>
                       
                       {!s.apolice_pdf ? (
                         <label 
                           className="mini-btn" 
-                          style={{
-                            cursor:'pointer', 
-                            fontSize: 11,
-                            padding: '6px 10px',
-                            background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', 
-                            border: '1px solid #fed7aa',
-                            color: '#c2410c',
-                            borderRadius: 6,
-                            fontWeight: 600
-                          }}
+                          style={{cursor:'pointer'}}
                           title="Anexar PDF da apólice"
                         >
-                          📎 Anexar
+                          📎
                           <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
                         </label>
                       ) : (
-                        <div style={{display: 'flex', gap: 4}}>
+                        <>
                           <a
                             className="mini-btn"
                             href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&signed=1`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
-                              background:'linear-gradient(135deg, #f0fdf4, #dcfce7)', 
-                              color:'#166534', 
-                              border:'1px solid #bbf7d0', 
-                              fontSize: 11,
-                              padding: '6px 10px',
-                              borderRadius: 6,
-                              fontWeight: 600
+                              background:'#065f46', 
+                              color:'#6ee7b7', 
+                              border:'1px solid #059669'
                             }}
                             title="Visualizar PDF"
                           >
-                            👁️ Ver
+                            👁️
                           </a>
                           <a
                             className="mini-btn"
                             href={`/api/apolice-proxy?path=${encodeURIComponent(s.apolice_pdf)}&download=1`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{
-                              background:'linear-gradient(135deg, #f8fafc, #f1f5f9)', 
-                              color:'#334155', 
-                              border:'1px solid #cbd5e1', 
-                              fontSize: 11,
-                              padding: '6px 10px',
-                              borderRadius: 6,
-                              fontWeight: 600
-                            }}
                             title="Baixar PDF"
                           >
-                            📥 Baixar
+                            📥
                           </a>
-                        </div>
+                        </>
                       )}
                       
                       {uploadingId===s.id && (
                         <span style={{
-                          fontSize: 11, 
-                          color:'#059669', 
+                          fontSize: 10, 
+                          color:'#10b981', 
                           fontWeight: 600,
-                          background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
-                          padding: '4px 8px',
-                          borderRadius: 4,
-                          border: '1px solid #a7f3d0'
+                          padding: '2px 4px',
+                          borderRadius: 3
                         }}>
-                          ⏳ Enviando...
+                          ⏳
                         </span>
                       )}
                     </div>
@@ -1438,11 +1387,10 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                 <td colSpan={10} style={{ 
                   textAlign: 'center', 
                   padding: 80, 
-                  color: '#64748b',
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+                  color: '#9ca3af'
                 }}>
                   <div style={{fontSize: 48, marginBottom: 16, opacity: 0.3}}>📋</div>
-                  <div style={{fontSize: 18, fontWeight: 600, marginBottom: 8, color: '#374151'}}>Nenhum seguro encontrado</div>
+                  <div style={{fontSize: 18, fontWeight: 600, marginBottom: 8, color: '#e2e8f0'}}>Nenhum seguro encontrado</div>
                   <small style={{opacity: 0.7, fontSize: 14}}>Experimente alterar os filtros ou termo de busca</small>
                 </td>
               </tr>
@@ -1480,12 +1428,12 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
         )}
         {section === 'cotacao' && (
           <div className="container-seguros">
-            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>💰 Cotação</h1>
-            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Compare preços entre seguradoras e encontre as melhores ofertas.</p>
+            <h1 style={{ color: '#4fc3f7', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>💰 Cotação</h1>
+            <p style={{ margin: '6px 0 22px', color: '#cbd5e1', fontSize: 14 }}>Compare preços entre seguradoras e encontre as melhores ofertas.</p>
             
             <div style={{
-              background: 'linear-gradient(135deg, #f6fbff, #e8f4fd)',
-              border: '2px dashed #b8d4f0',
+              background: '#374151',
+              border: '2px dashed #4b5563',
               borderRadius: 16,
               padding: 40,
               textAlign: 'center',
@@ -1493,7 +1441,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
             }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>🚀</div>
               <h2 style={{ 
-                color: '#1976d2', 
+                color: '#4fc3f7', 
                 margin: '0 0 12px', 
                 fontSize: 24, 
                 fontWeight: 700 
@@ -1501,7 +1449,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                 Em Breve
               </h2>
               <p style={{ 
-                color: '#4b6980', 
+                color: '#cbd5e1', 
                 fontSize: 16, 
                 margin: '0 0 20px',
                 lineHeight: 1.5
@@ -1516,37 +1464,37 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                 marginTop: 32
               }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: '#2d3748',
                   padding: 20,
                   borderRadius: 12,
-                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.1)'
+                  border: '1px solid #4a5568'
                 }}>
-                  <h4 style={{ color: '#1976d2', margin: '0 0 8px' }}>🔗 Integrações</h4>
-                  <p style={{ fontSize: 14, color: '#4b6980', margin: 0 }}>
+                  <h4 style={{ color: '#4fc3f7', margin: '0 0 8px' }}>🔗 Integrações</h4>
+                  <p style={{ fontSize: 14, color: '#cbd5e1', margin: 0 }}>
                     Porto Seguro, Bradesco, SulAmérica, Allianz e mais
                   </p>
                 </div>
                 
                 <div style={{
-                  background: '#ffffff',
+                  background: '#2d3748',
                   padding: 20,
                   borderRadius: 12,
-                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.1)'
+                  border: '1px solid #4a5568'
                 }}>
-                  <h4 style={{ color: '#1976d2', margin: '0 0 8px' }}>⚡ Cotação Rápida</h4>
-                  <p style={{ fontSize: 14, color: '#4b6980', margin: 0 }}>
+                  <h4 style={{ color: '#4fc3f7', margin: '0 0 8px' }}>⚡ Cotação Rápida</h4>
+                  <p style={{ fontSize: 14, color: '#cbd5e1', margin: 0 }}>
                     Resultados em segundos para múltiplas seguradoras
                   </p>
                 </div>
                 
                 <div style={{
-                  background: '#ffffff',
+                  background: '#2d3748',
                   padding: 20,
                   borderRadius: 12,
-                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.1)'
+                  border: '1px solid #4a5568'
                 }}>
-                  <h4 style={{ color: '#1976d2', margin: '0 0 8px' }}>📊 Comparação</h4>
-                  <p style={{ fontSize: 14, color: '#4b6980', margin: 0 }}>
+                  <h4 style={{ color: '#4fc3f7', margin: '0 0 8px' }}>📊 Comparação</h4>
+                  <p style={{ fontSize: 14, color: '#cbd5e1', margin: 0 }}>
                     Análise detalhada de coberturas e preços
                   </p>
                 </div>
@@ -1567,12 +1515,12 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
         )}
         {section === 'relatorios' && (
           <div className="container-seguros">
-            <h1 style={{ color: '#1976d2', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📈 Relatórios</h1>
-            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Gere e exporte relatórios detalhados dos seguros.</p>
-            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Relatório de prêmios recebidos por mês:</b>
+            <h1 style={{ color: '#4fc3f7', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>📈 Relatórios</h1>
+            <p style={{ margin: '6px 0 22px', color: '#cbd5e1', fontSize: 14 }}>Gere e exporte relatórios detalhados dos seguros.</p>
+            <div style={{background:'#374151', borderRadius:12, padding:24, marginBottom:18, border:'1px solid #4b5563'}}>
+              <b style={{color:'#f1f5f9'}}>Relatório de prêmios recebidos por mês:</b>
               <br />
-              <span style={{fontSize:13, color:'#4b6980'}}>Exporta um CSV com a soma dos prêmios por mês/ano.</span>
+              <span style={{fontSize:13, color:'#cbd5e1'}}>Exporta um CSV com a soma dos prêmios por mês/ano.</span>
             </div>
             <button className="btn-main" onClick={exportRelatorioPremios}>Exportar relatório CSV</button>
           </div>
@@ -1581,27 +1529,27 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
 
         {section === 'config' && (
           <div className="container-seguros">
-            <h1 style={{ color: 'var(--primary)', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>⚙️ Configurações</h1>
-            <p style={{ margin: '6px 0 22px', color: '#4b6980', fontSize: 14 }}>Personalize preferências, dados da empresa e integrações.</p>
+            <h1 style={{ color: '#4fc3f7', margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: 0.5 }}>⚙️ Configurações</h1>
+            <p style={{ margin: '6px 0 22px', color: '#cbd5e1', fontSize: 14 }}>Personalize preferências, dados da empresa e integrações.</p>
 
             {/* Autenticação */}
-            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Conta</b>
+            <div style={{background:'#374151', borderRadius:12, padding:24, marginBottom:18, border:'1px solid #4b5563'}}>
+              <b style={{color:'#f1f5f9'}}>Conta</b>
               <div style={{marginTop:12}}>
-                <div style={{marginBottom:8}}>Usuário: <strong>{currentUser.email}</strong></div>
+                <div style={{marginBottom:8, color:'#e2e8f0'}}>Usuário: <strong style={{color:'#4fc3f7'}}>{currentUser.email}</strong></div>
                 <button className="btn-secondary" type="button" onClick={signOut}>Sair da conta</button>
               </div>
             </div>
 
             {/* Logs e Auditoria */}
-            <div style={{background:'#f6fbff', borderRadius:12, padding:24, marginBottom:18}}>
-              <b>Logs e Auditoria</b>
+            <div style={{background:'#374151', borderRadius:12, padding:24, marginBottom:18, border:'1px solid #4b5563'}}>
+              <b style={{color:'#f1f5f9'}}>Logs e Auditoria</b>
               <div style={{display:'flex', gap:8, alignItems:'center', marginTop:12}}>
                 <input className="search-input" placeholder="Pesquisar em ação/entidade/usuário/detalhes" value={logsSearch} onChange={e=>setLogsSearch(e.target.value)} />
                 <button className="btn-secondary" type="button" onClick={refreshLogs} disabled={logsLoading}>{logsLoading? 'Carregando...':'Atualizar'}</button>
                 <button className="btn-secondary" type="button" onClick={exportLogsCSV}>⬇️ Exportar CSV</button>
               </div>
-              <div style={{marginTop:12, maxHeight:320, overflow:'auto', border:'1px solid #e2e9f0', borderRadius:10}}>
+              <div style={{marginTop:12, maxHeight:320, overflow:'auto', border:'1px solid #4b5563', borderRadius:10, background:'#2d3748'}}>
                 <table className="seguros" style={{marginTop:0}}>
                   <thead>
                     <tr>
@@ -1632,7 +1580,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                       </tr>
                     ))}
                     {(!logs || logs.length===0) && (
-                      <tr><td colSpan={6} style={{textAlign:'center', padding:16, color:'#4b6980'}}>Sem logs disponíveis.</td></tr>
+                      <tr><td colSpan={6} style={{textAlign:'center', padding:16, color:'#9ca3af'}}>Sem logs disponíveis.</td></tr>
                     )}
                   </tbody>
                 </table>
