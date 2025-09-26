@@ -763,11 +763,16 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
           <div style={{ 
             background: '#1a202c', 
             borderRadius: 20, 
-            padding: 40, 
+            padding: '32px 20px', 
             boxShadow: '0 4px 28px rgba(0,0,0,0.4)', 
             border: '1px solid #334155',
-            maxWidth: 400, 
-            width: '100%'
+            maxWidth: 380, 
+            width: '100%',
+            minWidth: 0,
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
           }}>
             <div style={{ textAlign: 'center', marginBottom: 30 }}>
               <div className="brand" style={{ justifyContent: 'center', fontSize: 24, marginBottom: 10 }}>
@@ -776,8 +781,8 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
               <p style={{ color: '#cbd5e1', margin: 0 }}>Faça login para acessar o sistema</p>
             </div>
             
-            <form onSubmit={(e)=>{ e.preventDefault(); signIn(); }} style={{ display: 'grid', gap: 16 }}>
-              <div>
+            <form onSubmit={(e)=>{ e.preventDefault(); signIn(); }} style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ width: '100%' }}>
                 <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#cbd5e1', display: 'block', marginBottom: 6 }}>E-mail</label>
                 <input 
                   className="search-input"
@@ -786,10 +791,10 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                   onChange={(e)=>setAuthEmail(e.target.value)} 
                   placeholder="email@exemplo.com"
                   required
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}
                 />
               </div>
-              <div>
+              <div style={{ width: '100%' }}>
                 <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#cbd5e1', display: 'block', marginBottom: 6 }}>Senha</label>
                 <input 
                   className="search-input"
@@ -798,10 +803,10 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                   onChange={(e)=>setAuthPassword(e.target.value)} 
                   placeholder="••••••••"
                   required
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}
                 />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10, width: '100%' }}>
                 <button type="submit" className="btn-main" disabled={authLoading} style={{ width: '100%' }}>
                   {authLoading ? 'Entrando...' : 'Entrar'}
                 </button>
@@ -809,7 +814,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                   Criar conta
                 </button>
               </div>
-              <small style={{ color: '#9ca3af', textAlign: 'center', fontSize: 12 }}>
+              <small style={{ color: '#9ca3af', textAlign: 'center', fontSize: 12, width: '100%' }}>
                 Obs.: Criação de conta pode exigir confirmação por e-mail
               </small>
             </form>
@@ -1430,16 +1435,15 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                         🗑️
                       </button>
                       
-                      {!s.apolice_pdf ? (
-                        <label 
-                          className="mini-btn" 
-                          style={{cursor:'pointer'}}
-                          title="Anexar PDF da apólice"
-                        >
-                          📎
-                          <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
-                        </label>
-                      ) : (
+                      <label 
+                        className="mini-btn" 
+                        style={{cursor:'pointer'}}
+                        title={s.apolice_pdf ? 'Trocar PDF da apólice' : 'Anexar PDF da apólice'}
+                      >
+                        {s.apolice_pdf ? '🔄' : '📎'}
+                        <input type="file" accept="application/pdf" style={{display:'none'}} onChange={(e)=>{ const f=e.target.files?.[0]; if(f) handleUploadPDF(s, f); }} />
+                      </label>
+                      {s.apolice_pdf && (
                         <>
                           <a
                             className="mini-btn"
