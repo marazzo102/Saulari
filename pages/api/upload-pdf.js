@@ -6,8 +6,8 @@ export default async function handler(req, res) {
   }
 
   try {
+
     const { fileName, fileContent, seguroId } = req.body;
-    
     if (!fileName || !fileContent || !seguroId) {
       return res.status(400).json({ error: 'fileName, fileContent e seguroId são obrigatórios' });
     }
@@ -15,19 +15,24 @@ export default async function handler(req, res) {
     // Usa Service Role Key se disponível
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
     if (!SUPABASE_URL || !SERVICE_KEY) {
       return res.status(500).json({ error: 'Configuração do Supabase incompleta' });
     }
 
     // Cliente com Service Role Key (só no servidor)
     const adminClient = createClient(SUPABASE_URL, SERVICE_KEY);
-    
+
     // Converte base64 para buffer
     const buffer = Buffer.from(fileContent, 'base64');
-    
-    const path = `${seguroId}/${Date.now()}-${fileName}`;
-    
+
+    // Sanitiza o nome do arquivo para evitar caracteres inválidos
+    const sanitizedFileName = fileName
+      .normalize('NFD').replace(/[^\w.-]+/g, '_') // substitui tudo que não for letra, número, _ . -
+      .replace(/_+/g, '_') // evita múltiplos underscores
+      .replace(/^_+|_+$/g, ''); // remove underscores do início/fim
+
+    const path = `${seguroId}/${Date.now()}-${sanitizedFileName}`;
+
     const { error: uploadError } = await adminClient.storage
       .from('apolices')
       .upload(path, buffer, {
@@ -41,7 +46,6 @@ export default async function handler(req, res) {
     }
 
     const internalPath = `apolices/${path}`;
-    
     return res.status(200).json({ 
       success: true, 
       path: internalPath 
