@@ -907,7 +907,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
             <div className="kpi">
               <h3>Sem anexo</h3>
               <div className="value">{seguros.filter(s=>!s.apolice_pdf).length}</div>
-              <div className="sub">Precisa anexar PDF</div>
+              <div className="sub">Precisa anexar Apólice</div>
             </div>
           </section>
 
@@ -1524,8 +1524,8 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
               <div style={{ 
                 marginTop: 24, 
                 padding: 16, 
-                background: '#fff3cd',
-                border: '1px solid #ffeaa7',
+                background: '#8a6a00ff',
+                border: '1px solid #5f4900ff',
                 borderRadius: 8,
                 fontSize: 14
               }}>
