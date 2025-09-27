@@ -272,34 +272,52 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
         min-width: 0;
         max-width: 100vw;
         height: auto;
-        position: static;
-        box-shadow: none;
-        border-radius: 0;
-        padding: 12px 8px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        border-radius: 0 0 12px 12px;
+        padding: 10px 4vw 10px 4vw;
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        z-index: 100;
+        background: var(--sidebar-bg);
       }
-      .brand { font-size: 18px; }
-      .nav { flex-direction: row; gap: 4px; margin-top: 0; }
-      .nav a { padding: 7px 6px; font-size: 13px; }
-      .content { padding: 6vw 2vw 2vw 2vw; }
-      .container-seguros { padding: 10px 2vw 18px; border-radius: 10px; }
-      .kpis { grid-template-columns: 1fr; gap: 8px; }
-      .filters-row { flex-direction: column; align-items: stretch; gap: 8px; }
-      .filter-group { justify-content: flex-start; gap: 6px; }
-      .sort-controls { flex-direction: column; gap: 8px; padding: 8px 6px; }
-      .table-container { margin: 10px -2vw; padding: 0 2vw; }
-      table.seguros { min-width: 600px; font-size: 12px; }
-      table.seguros thead th, table.seguros tbody td { font-size: 11px; padding: 4px 2px; }
-      .form-wrapper { padding: 10px 2vw 8px; border-radius: 8px; }
-      .actions-row { flex-direction: column; gap: 8px; }
-      .mini-btn, .btn-main, .btn-secondary { font-size: 13px; padding: 7px 10px; }
-      .search-input { font-size: 13px; padding: 10px 12px 10px 38px; }
-      .alerts-wrapper { gap: 6px; }
-      .alert, .alert-vencidos, .alert-vencendo { font-size: 12px; padding: 8px 8px; }
+      .brand { font-size: 16px; }
+      .nav { flex-direction: row; gap: 2vw; margin-top: 0; }
+      .nav a { padding: 7px 4px; font-size: 14px; }
+      .content { padding: 60px 2vw 2vw 2vw; }
+      .container-seguros { padding: 8px 2vw 12px; border-radius: 8px; margin-top: 8px; }
+      .kpis { grid-template-columns: 1fr; gap: 6px; }
+      .filters-row { flex-direction: column; align-items: stretch; gap: 6px; }
+      .filter-group { justify-content: flex-start; gap: 4px; }
+      .sort-controls { flex-direction: column; gap: 6px; padding: 6px 2vw; }
+      .table-container { margin: 8px -2vw; padding: 0 2vw; overflow-x: auto; }
+      table.seguros { min-width: 520px; font-size: 12px; }
+      table.seguros thead th, table.seguros tbody td { font-size: 11px; padding: 3px 1px; }
+      .form-wrapper { padding: 8px 2vw 6px; border-radius: 6px; }
+      .actions-row { flex-direction: column; gap: 6px; }
+      .mini-btn, .btn-main, .btn-secondary { font-size: 14px; padding: 10px 12px; min-width: 44px; min-height: 36px; }
+      .search-input { font-size: 14px; padding: 10px 10px 10px 36px; }
+      .alerts-wrapper { gap: 4px; }
+      .alert, .alert-vencidos, .alert-vencendo { font-size: 13px; padding: 7px 7px; }
+      .kpi .value { font-size: 18px; }
+      .kpi { padding: 10px; }
+      .filters-section { padding: 10px 2vw; }
+      .sort-label { font-size: 11px; }
+      .chip-filter { font-size: 12px; padding: 6px 10px; }
+      .table-actions { gap: 2px; }
+      .alert-badge { font-size: 11px; padding: 4px 8px 4px 6px; }
+      .form-grid { gap: 8px; }
+      .form-grid label { font-size: 11px; }
+      .form-grid input { font-size: 13px; padding: 7px 8px; }
+      .loading { font-size: 15px; }
+      /* Scrollbar visível para tabela */
+      .table-container::-webkit-scrollbar { height: 8px; background: #222; }
+      .table-container::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
     }
     `;
   document.head.appendChild(style);
