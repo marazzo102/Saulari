@@ -267,10 +267,39 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
       .kpis { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 768px) {
-      .sidebar { width: 200px; }
-      .filters-row { flex-direction: column; align-items: stretch; }
-      .filter-group { justify-content: center; }
+      .sidebar {
+        width: 100vw;
+        min-width: 0;
+        max-width: 100vw;
+        height: auto;
+        position: static;
+        box-shadow: none;
+        border-radius: 0;
+        padding: 12px 8px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 100;
+      }
+      .brand { font-size: 18px; }
+      .nav { flex-direction: row; gap: 4px; margin-top: 0; }
+      .nav a { padding: 7px 6px; font-size: 13px; }
+      .content { padding: 6vw 2vw 2vw 2vw; }
+      .container-seguros { padding: 10px 2vw 18px; border-radius: 10px; }
+      .kpis { grid-template-columns: 1fr; gap: 8px; }
+      .filters-row { flex-direction: column; align-items: stretch; gap: 8px; }
+      .filter-group { justify-content: flex-start; gap: 6px; }
+      .sort-controls { flex-direction: column; gap: 8px; padding: 8px 6px; }
+      .table-container { margin: 10px -2vw; padding: 0 2vw; }
+      table.seguros { min-width: 600px; font-size: 12px; }
       table.seguros thead th, table.seguros tbody td { font-size: 11px; padding: 4px 2px; }
+      .form-wrapper { padding: 10px 2vw 8px; border-radius: 8px; }
+      .actions-row { flex-direction: column; gap: 8px; }
+      .mini-btn, .btn-main, .btn-secondary { font-size: 13px; padding: 7px 10px; }
+      .search-input { font-size: 13px; padding: 10px 12px 10px 38px; }
+      .alerts-wrapper { gap: 6px; }
+      .alert, .alert-vencidos, .alert-vencendo { font-size: 12px; padding: 8px 8px; }
     }
     `;
   document.head.appendChild(style);
@@ -1081,7 +1110,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                     {vencidos.length} seguro{vencidos.length>1?'s':''} vencido{vencidos.length>1?'s':''}
                   </div>
                   <div style={{ color: '#f87171', fontSize: 12 }}>
-                    Renovar imediatamente para evitar descoberta
+                    Renovar imediatamente!
                   </div>
                 </div>
               </div>
