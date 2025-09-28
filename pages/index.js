@@ -1,3 +1,12 @@
+  // Função para logout do usuário
+  async function signOut() {
+    try {
+      await supabase.auth.signOut();
+      setCurrentUser(null);
+    } catch {
+      alert('Erro ao sair da conta.');
+    }
+  }
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { DashboardCharts } from '../components/DashboardCharts';
