@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { DashboardCharts } from '../components/DashboardCharts';
 
 // Utilitários de validação e formatação
 const validationUtils = {
@@ -382,26 +383,9 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
     } finally { setAuthLoading(false); }
   }
 
-  async function signUp() {
-    try {
-      setAuthLoading(true);
-      const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
-      if (error) throw error;
-      alert('Cadastro realizado. Verifique seu e-mail para confirmar (se aplicável).');
-    } catch (e) {
-      alert(e.message || 'Falha ao cadastrar');
-    } finally { setAuthLoading(false); }
-  }
 
-  async function signOut() {
-    try {
-      await supabase.auth.signOut();
-    } catch {
-      // ignore
-    }
-  }
-
-  async function logAction({ action, entity = null, entity_id = null, user = (currentUser?.email || null), details = null }) {
+  // Função para registrar logs de ações
+  async function logAction({ action, entity, entity_id, user, details }) {
     try {
       await fetch('/api/logs', {
         method: 'POST',
@@ -664,7 +648,18 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
   }
 
   function editarSeguro(seguro) {
-    setFormData(seguro);
+    setFormData({
+      id: seguro.id ?? null,
+      cliente_nome: seguro.cliente_nome ?? '',
+      cliente_cpf: seguro.cliente_cpf ?? '',
+      cliente_numero: seguro.cliente_numero ?? '',
+      tipo_seguro: seguro.tipo_seguro ?? '',
+      seguradora: seguro.seguradora ?? '',
+      premio: seguro.premio !== undefined && seguro.premio !== null ? String(seguro.premio) : '',
+      vigencia_inicio: seguro.vigencia_inicio ? String(seguro.vigencia_inicio).slice(0,10) : '',
+      vigencia_fim: seguro.vigencia_fim ? String(seguro.vigencia_fim).slice(0,10) : '',
+      apolice_pdf: seguro.apolice_pdf ?? ''
+    });
     setFormVisible(true);
   }
 
@@ -857,13 +852,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                 <button type="submit" className="btn-main" disabled={authLoading} style={{ width: '100%' }}>
                   {authLoading ? 'Entrando...' : 'Entrar'}
                 </button>
-                <button type="button" className="btn-secondary" onClick={signUp} disabled={authLoading} style={{ width: '100%' }}>
-                  Criar conta
-                </button>
               </div>
-              <small style={{ color: '#9ca3af', textAlign: 'center', fontSize: 12, width: '100%' }}>
-                Obs.: Criação de conta pode exigir confirmação por e-mail
-              </small>
             </form>
           </div>
         </div>
@@ -922,6 +911,9 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
               <br />
               <span style={{fontSize:13, color:'#cbd5e1', fontWeight:400}}>Integre uma lib como recharts/chart.js para gráficos reais.</span>
             </div>
+
+            <DashboardCharts seguros={seguros} />
+
           </div>
         )}
         {section === 'seguros' && (
@@ -1280,6 +1272,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
                         flexShrink: 0
                       }}>
                         {s.cliente_nome.charAt(0).toUpperCase()}
+                     
                       </div>
                       <span style={{overflow: 'hidden', textOverflow: 'ellipsis'}}>
                         {s.cliente_nome}
