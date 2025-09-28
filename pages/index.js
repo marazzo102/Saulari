@@ -915,11 +915,7 @@ if (typeof window !== 'undefined' && !document.getElementById('modern-seguros-st
               </div>
             </section>
             {/* Gráfico de exemplo (placeholder) */}
-            <div style={{marginTop:32, background:'#374151', borderRadius:12, padding:24, textAlign:'center', color:'#4fc3f7', fontWeight:600, border:'1px solid #4b5563'}}>
-              [Gráfico de prêmios por mês aqui]
-              <br />
-              <span style={{fontSize:13, color:'#cbd5e1', fontWeight:400}}>Integre uma lib como recharts/chart.js para gráficos reais.</span>
-            </div>
+
 
             <DashboardCharts seguros={seguros} />
 
